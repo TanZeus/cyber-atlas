@@ -142,12 +142,13 @@ pre{margin:0;background:var(--void);border:1px solid var(--edge);border-left:2px
 
 <div class="wrap">
 <header>
-  <div class="brand">Reference &amp; Q&amp;A · 189 techniques · 67 Q&amp;A · 18 domains</div>
+  <div class="brand">Reference · 189 techniques · 18 domains</div>
+  <!-- Q&A disabled for now: <div class="brand">Reference &amp; Q&amp;A · 189 techniques · 67 Q&amp;A · 18 domains</div> -->
   <h1>Cyber <span>Atlas</span></h1>
   <p class="sub">Pick a stage of the kill chain, drill into a domain, then a technique. Each card gives you the definition, a representative payload or command, a realistic scenario, the business impact, and what it chains into — which is the part that matters most when you have to defend the reasoning.</p>
   <div class="modes">
     <button class="btn on" id="mode-tech">Techniques</button>
-    <button class="btn" id="mode-qa">Q&amp;A</button>
+    <!-- Q&A disabled for now: <button class="btn" id="mode-qa">Q&amp;A</button> -->
   </div>
   <div class="bar">
     <input id="q" placeholder="search technique, payload or keyword…" autocomplete="off">
@@ -177,10 +178,12 @@ pre{margin:0;background:var(--void);border:1px solid var(--edge);border-left:2px
   </div>
 </div>
 
+<!-- Q&A disabled for now:
 <div class="qawrap" id="qaview" style="display:none">
   <div class="qa-cats" id="qa-cats"></div>
   <div class="qa-list" id="qa-list"></div>
 </div>
+-->
 </div>
 
 <script>
@@ -1812,11 +1815,12 @@ $("techs").addEventListener("click",e=>{const t=e.target.closest(".tech");if(!t)
   if(window.innerWidth<980) $("detail").scrollIntoView({behavior:"smooth",block:"start"});});
 document.addEventListener("keydown",e=>{if(e.key!=="Enter")return;
   const el=document.activeElement; if(el&&(el.classList.contains("stage")||el.classList.contains("dom")||el.classList.contains("tech"))) el.click();});
-$("q").addEventListener("input",()=>{mode==="qa"?renderQA():render();});
-$("quiz").onclick=()=>{quiz=!quiz;$("quiz").classList.toggle("on",quiz);mode==="qa"?renderQA():detail();};
-$("reset").onclick=()=>{fDom=null;fPhase=null;$("q").value="";sel=null;fCat=null;render();detail();renderQA();};
+$("q").addEventListener("input",()=>{render();});
+$("quiz").onclick=()=>{quiz=!quiz;$("quiz").classList.toggle("on",quiz);detail();};
+$("reset").onclick=()=>{fDom=null;fPhase=null;$("q").value="";sel=null;render();detail();};
 
-/* ---------- Q&A mode ---------- */
+/* ---------- Q&A mode — disabled for now ----------
+
 const QADATA = (window.QA||[]).slice().sort((a,b)=>a.id-b.id);
 const QCATS = ["Red Team & Methodology","Active Directory","Cloud","Mobile & Thick Client",
   "API & GraphQL","Web Vulnerabilities","Auth, Tokens & Session","Tools & Reporting"]
@@ -1872,6 +1876,7 @@ function setMode(m){
 }
 $("mode-tech").onclick=()=>setMode("tech");
 $("mode-qa").onclick=()=>setMode("qa");
+---------- end Q&A mode ---------- */
 
 render();
 </script>
