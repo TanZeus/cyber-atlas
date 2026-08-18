@@ -1,0 +1,926 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mobile Security — Android attack &amp; instrumentation map · Cyber Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#0A1418; --slab:#0F1E24; --panel:#132831; --edge:#1E3B47;
+  --mist:#9DB6BF; --bone:#EDF5F5; --dim:#5F7C88;
+  --signal:#F2A03D; --cool:#4FC3D9;
+  --crit:#FF5C57; --high:#F2A03D; --med:#E8D14A; --low:#6FD08C;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --sans:"IBM Plex Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;scroll-behavior:smooth}
+body{
+  background:var(--void);
+  background-image:linear-gradient(var(--slab) 1px,transparent 1px),linear-gradient(90deg,var(--slab) 1px,transparent 1px);
+  background-size:44px 44px;
+  color:var(--mist);font-family:var(--sans);font-size:15px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px 120px}
+a{color:var(--cool);text-decoration:none;border-bottom:1px solid rgba(79,195,217,.3)}
+a:hover{color:var(--bone);border-color:var(--cool)}
+
+header{padding:34px 0 22px;border-bottom:1px solid var(--edge);margin-bottom:10px}
+.brand{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--dim);text-transform:uppercase}
+.back{float:right;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+h1{font-family:var(--mono);font-weight:600;font-size:clamp(24px,4vw,36px);color:var(--bone);margin:8px 0 6px;letter-spacing:-.02em}
+h1 span{color:var(--signal)}
+.sub{margin:0;max-width:80ch;color:var(--mist)}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.chip{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;
+  border:1px solid var(--edge);color:var(--mist);border-radius:2px}
+.chip.warn{color:var(--signal);border-color:var(--signal)}
+
+.exec{border:1px solid var(--edge);border-left:2px solid var(--signal);background:var(--slab);padding:18px 22px;margin:28px 0}
+.exec ol{margin:0;padding-left:20px}
+.exec li{margin:5px 0;color:var(--bone)}
+.exec .h{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--signal);display:block;margin-bottom:10px}
+
+.toc{border:1px solid var(--edge);background:var(--slab);padding:16px 22px;margin:0 0 34px;columns:2;column-gap:34px}
+.toc a{display:block;font-family:var(--mono);font-size:12.5px;padding:4px 0;border:0;color:var(--mist)}
+.toc a:hover{color:var(--signal)}
+@media(max-width:680px){.toc{columns:1}}
+
+section{margin:48px 0;scroll-margin-top:16px}
+h2{font-family:var(--mono);font-size:20px;color:var(--bone);margin:0 0 6px;font-weight:600;letter-spacing:-.01em;
+  padding-top:18px;border-top:1px solid var(--edge)}
+h2 .num{color:var(--signal);margin-right:10px}
+h3{font-family:var(--mono);font-size:14.5px;color:var(--cool);letter-spacing:.02em;margin:28px 0 8px;font-weight:600}
+h4{font-family:var(--mono);font-size:13px;color:var(--signal);margin:20px 0 6px;font-weight:600}
+p{margin:12px 0}
+ul,ol{margin:12px 0}
+li{margin:5px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--void);border:1px solid var(--edge);
+  padding:1px 6px;border-radius:2px;color:#CFE6EC;word-break:break-word}
+strong{color:var(--bone);font-weight:600}
+
+pre{margin:16px 0;background:var(--void);border:1px solid var(--edge);border-left:2px solid var(--cool);
+  padding:14px 16px;font-family:var(--mono);font-size:12.5px;color:#CFE6EC;overflow-x:auto;line-height:1.7}
+pre .cm{color:var(--dim)}
+
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+th,td{border:1px solid var(--edge);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:var(--panel);color:var(--bone);font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+td{color:var(--mist)}
+td code,th code{background:transparent;border:0;padding:0;color:var(--cool)}
+.tbl-wrap{overflow-x:auto}
+
+.callout{border:1px dashed var(--edge);background:rgba(79,195,217,.05);padding:13px 16px;margin:16px 0}
+.callout.warn{border-color:rgba(242,160,61,.5);background:rgba(242,160,61,.06)}
+.callout.crit{border-color:rgba(255,92,87,.5);background:rgba(255,92,87,.06)}
+.callout .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--signal);display:block;margin-bottom:5px}
+.callout.crit .lbl{color:var(--crit)}
+
+.fig{margin:22px 0;border:1px solid var(--edge);background:var(--slab);padding:6px 6px 12px}
+.fig .cap{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);padding:9px 14px 4px}
+.fig .cap b{color:var(--signal)}
+.mermaid{background:transparent;text-align:center;overflow-x:auto;padding:8px}
+
+.gloss dt{font-family:var(--mono);color:var(--signal);font-size:13px;margin-top:12px}
+.gloss dd{margin:2px 0 0;padding-left:0;color:var(--mist)}
+
+.sev-crit{color:var(--crit)} .sev-high{color:var(--high)} .sev-med{color:var(--med)} .sev-low{color:var(--low)}
+.note{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:44px;padding-top:16px;border-top:1px solid var(--edge)}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.topjump{position:fixed;right:16px;bottom:16px;font-family:var(--mono);font-size:11px;background:var(--panel);
+  border:1px solid var(--edge);color:var(--mist);padding:8px 12px;border-radius:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <a class="back" href="./index.html">&larr; Cyber Atlas</a>
+  <div class="brand">Deep dive · Mobile platform security</div>
+  <h1>Mobile Security — <span>Android</span> Attacks &amp; Instrumentation</h1>
+  <p class="sub">A single, in-depth map of Android from the security model down to the TEE: the full attack surface and every major attack class, the root-hiding / attestation-forging ecosystem (Magisk · KernelSU · Zygisk · PIF · TrickyStore), how to author your own KernelSU/Magisk modules, the theory of runtime hooking, and a working test-case catalog for Frida and Objection. Written for OS-level understanding on authorized targets — mechanisms and detection, not a recipe against any specific victim app.</p>
+  <div class="tags">
+    <span class="chip">OWASP MASVS / MASTG</span>
+    <span class="chip">Keystore2 / KeyMint</span>
+    <span class="chip">Frida · Objection</span>
+    <span class="chip">KernelSU · Magisk · Zygisk</span>
+    <span class="chip warn">Educational · authorized testing only</span>
+  </div>
+</header>
+
+<div class="exec">
+<span class="h">Executive summary</span>
+<ol>
+<li>Android's security rests on the Linux <strong>UID sandbox</strong>, SELinux MAC, app signing, and a hardware root of trust (Verified Boot → TEE/StrongBox). Most attacks are about escaping, spoofing, or observing across one of those boundaries.</li>
+<li>The app-layer attack surface is dominated by <strong>insecure storage, exported components/IPC, WebView, weak crypto/TLS, and broken auth/logic</strong>; the platform layer by <strong>bootloader unlock, root, and TEE</strong> issues.</li>
+<li>Rooting (Magisk/KernelSU) plus <strong>Zygisk</strong> injection is the delivery vehicle for integrity attacks; <strong>PIF</strong> spoofs identity and <strong>TrickyStore</strong> forges hardware key attestation to reach Play Integrity <code>STRONG</code>.</li>
+<li>Runtime <strong>hooking</strong> — Java/ART via Frida or Xposed/LSPosed, native via inline/PLT-GOT — is the central dynamic-analysis technique; Frida and Objection turn it into repeatable test cases (SSL-pinning bypass, root/emulator-detection bypass, crypto interception, tracing).</li>
+<li>Defenders answer with attestation, revocation, server-side correlation, RASP, and anti-instrumentation; each has known blind spots documented below.</li>
+</ol>
+</div>
+
+<nav class="toc">
+  <a href="#s1">1 · Android architecture &amp; security model</a>
+  <a href="#s2">2 · Threat model &amp; attack surface</a>
+  <a href="#s3">3 · App-layer attacks (in depth)</a>
+  <a href="#s4">4 · Platform &amp; OS-level attacks</a>
+  <a href="#s5">5 · Network &amp; transport attacks</a>
+  <a href="#s6">6 · Reverse engineering &amp; static analysis</a>
+  <a href="#s7">7 · Hardware key attestation &amp; TrickyStore</a>
+  <a href="#s8">8 · The root-hiding ecosystem</a>
+  <a href="#s9">9 · Building KernelSU / Magisk modules</a>
+  <a href="#s10">10 · Hooking — theory</a>
+  <a href="#s11">11 · Frida — test-case catalog</a>
+  <a href="#s12">12 · Objection — test-case catalog</a>
+  <a href="#s13">13 · Detection &amp; anti-instrumentation</a>
+  <a href="#gloss">Glossary</a>
+</nav>
+
+<!-- ============ SECTION 1 ============ -->
+<section id="s1">
+<h2><span class="num">1</span>Android architecture &amp; security model</h2>
+<p>Every mobile attack is easier to reason about against the layered platform. From the top down:</p>
+<div class="tbl-wrap"><table>
+<tr><th>Layer</th><th>Contents</th><th>Primary security control</th></tr>
+<tr><td>Apps</td><td>APKs, each in its own process &amp; UID</td><td>Per-UID sandbox, permissions, signing</td></tr>
+<tr><td>Java/System framework</td><td><code>system_server</code>, ActivityManager, PackageManager, AndroidKeyStore provider</td><td>Permission enforcement, Binder identity</td></tr>
+<tr><td>Native userspace / HAL</td><td>libc (Bionic), <code>keystore2</code>, <code>media</code>, KeyMint AIDL HAL</td><td>seccomp-bpf, HAL sandboxing</td></tr>
+<tr><td>ART runtime</td><td>Ahead-of-time + JIT compiled DEX; the managed heap</td><td>Bytecode verification; the layer Java hooks target</td></tr>
+<tr><td>Linux kernel</td><td>Binder IPC, dm-verity, SELinux (enforcing), seccomp</td><td>MAC + DAC; KernelSU lives here</td></tr>
+<tr><td>Secure world</td><td>TrustZone TEE (KeyMint TA, Gatekeeper, fingerprint) &amp; StrongBox SE</td><td>Isolation from the "normal world"</td></tr>
+<tr><td>Boot chain</td><td>ROM → bootloader → Android Verified Boot (AVB) → boot/vbmeta</td><td>Chain of trust; sets verified-boot state</td></tr>
+</table></div>
+
+<h3>1.1 The five pillars</h3>
+<ul>
+<li><strong>Application sandbox</strong> — each app gets a unique UID; the kernel's DAC keeps <code>/data/data/&lt;pkg&gt;</code> private. Same-signature apps can share a UID (<code>sharedUserId</code>, now deprecated).</li>
+<li><strong>SELinux (MAC)</strong> — type-enforcement domains (<code>untrusted_app</code>, <code>system_server</code>, <code>keystore</code>). Enforcing since Android 5; blocks many post-exploitation moves even with root.</li>
+<li><strong>App signing</strong> — v1 (JAR), v2/v3 (APK Signing Block, key rotation), v4 (streaming/fs-verity). Identity = signing key, not package name.</li>
+<li><strong>Verified Boot (AVB)</strong> — vbmeta signatures verify each stage; rollback protection via tamper-evident version counters. Drives the GREEN/YELLOW/ORANGE/RED state that attestation reports.</li>
+<li><strong>Hardware-backed keystore</strong> — keys live in the TEE/StrongBox; the framework only holds handles. Underpins attestation (Section 7).</li>
+</ul>
+
+<div class="fig">
+<div class="cap"><b>Diagram G</b> — Android layers, sandbox boundaries, and where offensive tooling lands</div>
+<pre class="mermaid">
+flowchart TB
+  subgraph APPZONE["App sandbox (per-UID)"]
+    APP["App process\nDEX in ART"]
+    FRIDA["frida-gadget / injected agent\n(Java + native hooks)"] -.instruments.-> APP
+  end
+  APP --> BND["Binder IPC"]
+  BND --> SS["system_server\n(framework services)"]
+  SS --> KS2["keystore2 daemon"]
+  KS2 --> TEE["TEE / StrongBox\nKeyMint TA"]
+  subgraph KERNEL["Linux kernel"]
+    SEL["SELinux (enforcing)"]
+    DMV["dm-verity"]
+    KSU["KernelSU\n(kernel-side root)"]
+  end
+  BND --- SEL
+  KSU -. grants root .-> APPZONE
+  BOOT["Bootloader + AVB"] --> KERNEL
+</pre>
+</div>
+</section>
+
+<!-- ============ SECTION 2 ============ -->
+<section id="s2">
+<h2><span class="num">2</span>Threat model &amp; attack surface</h2>
+<p>A useful decomposition follows the <strong>OWASP MASVS</strong> control groups and the <strong>Mobile Top 10</strong>. Attackers are grouped by the boundary they cross:</p>
+<div class="tbl-wrap"><table>
+<tr><th>Adversary posture</th><th>Access assumed</th><th>Representative attacks</th></tr>
+<tr><td>Remote / network</td><td>On-path or malicious server</td><td>MITM, TLS downgrade, API abuse, server-side IDOR</td></tr>
+<tr><td>Malicious app (co-resident)</td><td>Own app installed on device</td><td>Exported-component abuse, intent hijack, tapjacking, permission collusion</td></tr>
+<tr><td>Local / physical</td><td>Unlocked or ADB access</td><td>Data-at-rest extraction, backup abuse, screen/clipboard capture</td></tr>
+<tr><td>Device owner / analyst</td><td>Root + instrumentation</td><td>Reverse engineering, hooking, pinning bypass, attestation forging</td></tr>
+<tr><td>Supply chain</td><td>SDK / dependency / build</td><td>Malicious SDK, trojanized library, repackaging</td></tr>
+</table></div>
+
+<h3>2.1 OWASP Mobile Top 10 (2024) &rarr; Android manifestation</h3>
+<div class="tbl-wrap"><table>
+<tr><th>#</th><th>Category</th><th>Concrete Android instance</th></tr>
+<tr><td>M1</td><td>Improper credential usage</td><td>Hardcoded API keys in <code>strings.xml</code>/native libs; static IVs</td></tr>
+<tr><td>M2</td><td>Inadequate supply-chain security</td><td>Malicious ad/analytics SDK, dependency confusion</td></tr>
+<tr><td>M3</td><td>Insecure auth/authorization</td><td>Client-side auth, JWT "none" alg, missing server-side checks</td></tr>
+<tr><td>M4</td><td>Insufficient input/output validation</td><td>SQLi in content providers, WebView XSS</td></tr>
+<tr><td>M5</td><td>Insecure communication</td><td>No TLS, no pinning, cleartext traffic allowed</td></tr>
+<tr><td>M6</td><td>Inadequate privacy controls</td><td>PII in logs, clipboard, screenshots</td></tr>
+<tr><td>M7</td><td>Insufficient binary protection</td><td>No obfuscation/RASP; trivial to hook (Sections 10–12)</td></tr>
+<tr><td>M8</td><td>Security misconfiguration</td><td>Exported components, debuggable=true, backup=true</td></tr>
+<tr><td>M9</td><td>Insecure data storage</td><td>Plaintext SharedPreferences/SQLite/external storage</td></tr>
+<tr><td>M10</td><td>Insufficient cryptography</td><td>ECB mode, hardcoded keys, weak KDF</td></tr>
+</table></div>
+
+<div class="fig">
+<div class="cap"><b>Diagram H</b> — Android app attack surface at a glance</div>
+<pre class="mermaid">
+flowchart LR
+  ATT["Attacker"] --> NET["Network:\nMITM / pinning / API"]
+  ATT --> IPC["IPC:\nexported activities,\nservices, receivers,\nproviders, deep links"]
+  ATT --> STORE["Storage:\nprefs, sqlite,\nexternal, keystore misuse"]
+  ATT --> WV["WebView:\nJS bridge, file access,\nXSS"]
+  ATT --> BIN["Binary:\nreverse eng,\nhooking, RASP bypass"]
+  ATT --> PLT["Platform:\nroot, TEE, boot,\nprivilege escalation"]
+  NET --> APP["Target app"]
+  IPC --> APP
+  STORE --> APP
+  WV --> APP
+  BIN --> APP
+  PLT --> APP
+</pre>
+</div>
+</section>
+
+<!-- ============ SECTION 3 ============ -->
+<section id="s3">
+<h2><span class="num">3</span>App-layer attacks (in depth)</h2>
+
+<h3>3.1 Insecure data storage (M9)</h3>
+<p>Anything under <code>/data/data/&lt;pkg&gt;/</code> is DAC-protected but trivially readable on a rooted/backup-enabled device. Common sinks and their tells:</p>
+<div class="tbl-wrap"><table>
+<tr><th>Store</th><th>Path</th><th>Typical failure</th></tr>
+<tr><td>SharedPreferences</td><td><code>shared_prefs/*.xml</code></td><td>Plaintext tokens, PINs; use EncryptedSharedPreferences instead</td></tr>
+<tr><td>SQLite</td><td><code>databases/*.db</code></td><td>Unencrypted PII; SQLCipher not used</td></tr>
+<tr><td>Internal files</td><td><code>files/</code>, <code>cache/</code></td><td>Serialized secrets, cached responses</td></tr>
+<tr><td>External storage</td><td><code>/sdcard/Android/data/&lt;pkg&gt;/</code></td><td>World-readable on old APIs; media-store leakage</td></tr>
+<tr><td>Keystore misuse</td><td>AndroidKeyStore</td><td>Key without <code>setUserAuthenticationRequired</code>; key usable by any process code path</td></tr>
+<tr><td>Logs</td><td>logcat</td><td>Tokens/PII written to <code>Log.d</code></td></tr>
+</table></div>
+
+<h3>3.2 IPC &amp; exported components (M8)</h3>
+<p>The four component types are the primary <em>local</em> attack surface. A component is reachable by other apps if <code>android:exported="true"</code> (implicit-true when it declares an intent-filter on older <code>targetSdk</code>).</p>
+<div class="tbl-wrap"><table>
+<tr><th>Component</th><th>Abuse</th><th>Example</th></tr>
+<tr><td>Activity</td><td>Launch privileged screen, bypass auth, tapjacking</td><td><code>am start -n pkg/.AdminActivity</code> skips the login gate</td></tr>
+<tr><td>Service</td><td>Invoke privileged action, bound-service command injection</td><td>Exported service that executes commands by intent extra</td></tr>
+<tr><td>Broadcast Receiver</td><td>Spoof system events, inject state</td><td>Fake "payment success" broadcast a receiver trusts</td></tr>
+<tr><td>Content Provider</td><td>SQLi, path traversal, IDOR over <code>content://</code></td><td><code>content://pkg.provider/users/../../databases/app.db</code></td></tr>
+</table></div>
+<h4>Intent attacks</h4>
+<ul>
+<li><strong>Intent redirection / "intent hijack"</strong> — app forwards an attacker-supplied <code>Intent</code> (via <code>getParcelableExtra</code>) to a privileged internal component (confused deputy).</li>
+<li><strong>Implicit-intent eavesdropping</strong> — sensitive data broadcast implicitly is readable by any registered receiver.</li>
+<li><strong>PendingIntent hijack</strong> — a mutable <code>PendingIntent</code> handed to another app lets it fill in the blanks and act as the sender.</li>
+<li><strong>Deep-link / App-Link abuse</strong> — unvalidated <code>https://</code>/custom-scheme links drive internal navigation, oauth-token theft via open redirect, or WebView loads of attacker URLs.</li>
+</ul>
+
+<h3>3.3 WebView attacks</h3>
+<div class="tbl-wrap"><table>
+<tr><th>Weakness</th><th>Consequence</th></tr>
+<tr><td><code>addJavascriptInterface</code> exposed to untrusted content</td><td>JS &rarr; Java bridge = RCE-in-app (reflection to <code>Runtime.exec</code> pre-API17)</td></tr>
+<tr><td><code>setJavaScriptEnabled(true)</code> + loading remote/HTTP</td><td>MITM injects XSS that drives the bridge</td></tr>
+<tr><td><code>setAllowFileAccess</code> / <code>setAllowUniversalAccessFromFileURLs</code></td><td>Local file read, SOP bypass, exfil of app-private files</td></tr>
+<tr><td>Improper <code>shouldOverrideUrlLoading</code></td><td>Open redirect, deep-link chaining</td></tr>
+</table></div>
+
+<h3>3.4 Injection &amp; crypto (M4, M10)</h3>
+<ul>
+<li><strong>SQLi in providers</strong> — <code>query()</code> selection built by string concat; test via <code>content query --uri</code>.</li>
+<li><strong>Path traversal</strong> in providers exposing files by <code>openFile()</code>.</li>
+<li><strong>Weak crypto</strong> — AES/ECB (pattern leakage), static IV, hardcoded keys in DEX/native, <code>Random</code> instead of <code>SecureRandom</code>, home-grown "encryption".</li>
+<li><strong>Insecure KDF</strong> — MD5/SHA-1 password hashing, no salt, low iteration counts.</li>
+</ul>
+
+<h3>3.5 Auth, session &amp; business logic (M3)</h3>
+<ul>
+<li>Client-side-only auth / feature gating (unlocked by flipping a boolean — a prime hooking target, Section 11).</li>
+<li>JWT flaws: <code>alg:none</code>, weak HMAC secret, no expiry/audience check.</li>
+<li>Biometric bypass: result-only (boolean) callbacks not bound to a <code>CryptoObject</code> — hookable.</li>
+<li>IDOR/BOLA at the API, replay of signed requests, race conditions in payment flows.</li>
+</ul>
+
+<div class="callout"><span class="lbl">Testing posture</span>Most of Section 3 is exercised statically (jadx/apktool, Section 6) then confirmed dynamically with ADB, Frida, and Objection (Sections 11–12) — e.g. dumping <code>shared_prefs</code>, calling exported components with <code>am</code>/<code>content</code>, and hooking the auth boolean.</div>
+</section>
+
+<!-- ============ SECTION 4 ============ -->
+<section id="s4">
+<h2><span class="num">4</span>Platform &amp; OS-level attacks</h2>
+
+<h3>4.1 Bootloader &amp; Verified Boot</h3>
+<ul>
+<li><strong>Bootloader unlock</strong> (<code>fastboot flashing unlock</code>) wipes userdata and flips AVB to YELLOW/ORANGE — the precondition for custom images and root, and the state attestation reports honestly (until forged).</li>
+<li><strong>AVB downgrade / rollback</strong> — flashing older, vulnerable firmware; blocked by rollback counters where implemented.</li>
+<li><strong>vbmeta tampering</strong> — <code>--disable-verity --disable-verification</code> to run a modified boot image.</li>
+</ul>
+
+<h3>4.2 Rooting</h3>
+<div class="tbl-wrap"><table>
+<tr><th>Method</th><th>Mechanism</th><th>Note</th></tr>
+<tr><td><strong>Magisk</strong></td><td>Patches <code>boot</code>/<code>init_boot</code> ramdisk; "systemless" overlay; <code>su</code> daemon; MagiskHide removed, DenyList remains</td><td>Userspace root manager; Zygisk for injection</td></tr>
+<tr><td><strong>KernelSU</strong></td><td>Kernel-space root via a custom kernel or GKI module; <code>su</code> granted by the kernel; app-profile based</td><td>Harder to detect from userspace; needs kernel source/GKI</td></tr>
+<tr><td><strong>APatch</strong></td><td>Kernel patching approach similar in spirit to KernelSU</td><td>Alternative kernel-based manager</td></tr>
+<tr><td>Exploit-based</td><td>Temporary root via a kernel/vendor bug (e.g. Dirty COW-class)</td><td>Device/version specific</td></tr>
+</table></div>
+
+<h3>4.3 Privilege escalation &amp; the secure world</h3>
+<ul>
+<li><strong>SELinux weakening</strong> — <code>permissive</code> domains or over-broad policy to reach protected sockets/services.</li>
+<li><strong>Confused-deputy via system_server</strong> — abusing a privileged service to act on the attacker's behalf.</li>
+<li><strong>TEE / TrustZone exploitation</strong> — memory-corruption in a Trusted Application to leak keys or forge attestation from inside the secure world (rare, high-value; e.g. historical QSEE/Trustonic bugs).</li>
+<li><strong>Secure-element / NFC</strong> and <strong>baseband</strong> attack surfaces for the well-resourced.</li>
+</ul>
+
+<div class="callout warn"><span class="lbl">Chain</span>The canonical platform chain: <em>unlock bootloader &rarr; flash/patch boot &rarr; systemless root &rarr; Zygisk injection &rarr; module-level integrity attacks (PIF + TrickyStore)</em>. Section 8 details the last stage; Section 9 shows how to author the modules.</div>
+</section>
+
+<!-- ============ SECTION 5 ============ -->
+<section id="s5">
+<h2><span class="num">5</span>Network &amp; transport attacks</h2>
+<h3>5.1 Interception</h3>
+<ul>
+<li><strong>Proxy MITM</strong> — Burp/mitmproxy with the CA installed. Since Android 7, apps trust only <em>system</em> CAs unless <code>network_security_config</code> opts into user CAs; a rooted device can push the CA to the system store (or Magisk "MoveCert"/cert-injection modules).</li>
+<li><strong>Cleartext</strong> — <code>usesCleartextTraffic</code> / missing NSC allows HTTP; downgrade and inject.</li>
+</ul>
+<h3>5.2 Certificate pinning</h3>
+<p>Pinning binds the server cert/key to the app, defeating proxy CAs. Bypass approaches (all require instrumentation, Sections 11–12):</p>
+<div class="tbl-wrap"><table>
+<tr><th>Pinning type</th><th>Where enforced</th><th>Bypass surface</th></tr>
+<tr><td>OkHttp <code>CertificatePinner</code></td><td>Java</td><td>Hook <code>check()</code> to no-op</td></tr>
+<tr><td><code>TrustManager</code> / <code>X509TrustManager</code></td><td>Java</td><td>Replace with all-trusting TM</td></tr>
+<tr><td>Network Security Config <code>&lt;pin-set&gt;</code></td><td>Framework</td><td>Patch NSC or hook config parsing</td></tr>
+<tr><td>Native / BoringSSL pinning</td><td>C/C++ .so</td><td>Hook <code>SSL_CTX_set_custom_verify</code> / <code>ssl_verify_cert_chain</code> in native</td></tr>
+<tr><td>Flutter (BoringSSL, no system proxy)</td><td>Native</td><td>Pattern-scan and patch <code>ssl_crypto_x509_session_verify_cert_chain</code></td></tr>
+</table></div>
+<p>The universal tools — Objection's <code>android sslpinning disable</code> and Frida "universal unpinning" scripts — chain many of these hooks; Flutter and static-native pinning are the stubborn cases needing manual pattern scanning.</p>
+</section>
+
+<!-- ============ SECTION 6 ============ -->
+<section id="s6">
+<h2><span class="num">6</span>Reverse engineering &amp; static analysis</h2>
+<div class="tbl-wrap"><table>
+<tr><th>Goal</th><th>Tool</th><th>Output</th></tr>
+<tr><td>Unpack APK</td><td><code>apktool d app.apk</code></td><td>Decoded resources + smali</td></tr>
+<tr><td>Decompile to Java</td><td><code>jadx-gui</code> / <code>jadx</code></td><td>Readable(ish) Java</td></tr>
+<tr><td>Manifest recon</td><td><code>aapt dump badging</code>, jadx</td><td>Components, perms, exported flags, <code>debuggable</code></td></tr>
+<tr><td>Native libs</td><td>Ghidra / IDA / radare2</td><td>Disassembly of <code>lib*.so</code> (JNI, pinning, packers)</td></tr>
+<tr><td>Rebuild &amp; sign</td><td><code>apktool b</code> + <code>apksigner</code></td><td>Patched/instrumented APK (e.g. inject frida-gadget)</td></tr>
+<tr><td>Secret scanning</td><td>MobSF, grep, <code>strings</code></td><td>Keys, endpoints, debug flags</td></tr>
+<tr><td>Automated dynamic</td><td>MobSF dynamic, Drozer</td><td>IPC probing, SSRF/injection surface</td></tr>
+</table></div>
+<p><strong>Smali patching</strong> (flip a <code>const/4 v0, 0x0</code> to <code>0x1</code> on a root-check return) is the static alternative to hooking when you want a permanently patched APK rather than a live instrument. Repackaging breaks v2/v3 signatures, so re-signed apps fail signature-based integrity checks — a reason dynamic hooking is often preferred for analysis.</p>
+</section>
+
+<!-- ============ SECTION 7 ============ -->
+<section id="s7">
+<h2><span class="num">7</span>Hardware key attestation &amp; TrickyStore</h2>
+<p>Key attestation answers, for a remote verifier: <em>"was this key generated inside this device's secure hardware, in a known boot state?"</em> The app never sees the private key; the TEE signs a certificate describing the key and device, chaining to a Google-controlled root.</p>
+
+<h3>7.1 App-side API and the returned chain</h3>
+<pre><span class="cm">// challenge = server nonce; binds the attestation to one request</span>
+KeyPairGenerator kpg = KeyPairGenerator.getInstance("EC","AndroidKeyStore");
+kpg.initialize(new KeyGenParameterSpec.Builder("attest_key",
+        KeyProperties.PURPOSE_SIGN)
+    .setAlgorithmParameterSpec(new ECGenParameterSpec("secp256r1"))
+    .setDigests(KeyProperties.DIGEST_SHA256)
+    .setAttestationChallenge(serverNonce)
+    <span class="cm">// .setIsStrongBoxBacked(true)   // StrongBox SE vs TrustZone TEE</span>
+    .build());
+kpg.generateKeyPair();
+Certificate[] chain = KeyStore.getInstance("AndroidKeyStore")
+        .getCertificateChain("attest_key");   <span class="cm">// leaf -> intermediates -> Google root</span></pre>
+<div class="tbl-wrap"><table>
+<tr><th>Position</th><th>Certificate</th><th>Signed by</th><th>Carries</th></tr>
+<tr><td>Leaf</td><td>Attestation cert for the key</td><td>Device batch/attestation key in TEE</td><td>Key's pubkey + attestation extension (challenge, device state)</td></tr>
+<tr><td>Intermediate(s)</td><td>Batch / RKP-provisioned</td><td>Higher intermediate &rarr; Google</td><td>Model/batch or device-provisioned identity</td></tr>
+<tr><td>Root</td><td>Google HW Attestation Root</td><td>Self-signed</td><td>The pinned trust anchor</td></tr>
+</table></div>
+
+<h3>7.2 The attestation extension — OID <code>1.3.6.1.4.1.11129.2.1.17</code></h3>
+<p>A non-critical X.509v3 extension in the <em>leaf</em>. Its <code>KeyDescription</code> holds the security level, software- and hardware-enforced authorization lists, and (nested in hardware) the <code>RootOfTrust</code> — the forgery target.</p>
+<div class="tbl-wrap"><table>
+<tr><th>Field</th><th>Meaning</th><th>Forgery-relevant?</th></tr>
+<tr><td><code>attestationVersion</code></td><td>Schema (roughly 1=KM2 … 100=KeyMint1, 200=KeyMint2, 300=KeyMint3; <em>version-dependent</em>)</td><td>Must match device era</td></tr>
+<tr><td><code>securityLevel</code></td><td><code>Software(0)</code>, <code>TrustedEnvironment(1)</code>, <code>StrongBox(2)</code></td><td>Verifier may require TEE/StrongBox</td></tr>
+<tr><td><code>attestationChallenge</code></td><td>Exact bytes from <code>setAttestationChallenge()</code></td><td>Must echo the nonce</td></tr>
+<tr><td><code>softwareEnforced</code> list</td><td>e.g. <code>attestationApplicationId</code> (tag 709)</td><td>Ties cert to the calling package(s)</td></tr>
+<tr><td><code>hardwareEnforced</code> list</td><td><code>osVersion</code>(705), <code>osPatchLevel</code>(706), <code>bootPatchLevel</code>(719), <code>vendorPatchLevel</code>(718), <code>rootOfTrust</code>(704)</td><td><strong>Primary forgery target</strong></td></tr>
+</table></div>
+
+<h4>RootOfTrust (tag 704) — the overwritten fields</h4>
+<div class="tbl-wrap"><table>
+<tr><th>ASN.1 field</th><th>Honest (rooted/unlocked)</th><th>Forged</th></tr>
+<tr><td><code>verifiedBootKey</code> (OCTET STRING)</td><td>Custom/AOSP key hash</td><td>Stock OEM hash / zeros</td></tr>
+<tr><td><code>deviceLocked</code> (BOOLEAN)</td><td><code>false</code></td><td><code>true</code></td></tr>
+<tr><td><code>verifiedBootState</code> (ENUM)</td><td><code>Unverified(2)=ORANGE</code> / <code>SelfSigned(1)=YELLOW</code></td><td><code>Verified(0)=GREEN</code></td></tr>
+<tr><td><code>verifiedBootHash</code> (v3+)</td><td>Hash of patched boot image</td><td>Plausible stock hash</td></tr>
+</table></div>
+
+<h3>7.3 The keybox — the enabling asset</h3>
+<p>A <strong>keybox</strong> (<code>/data/adb/tricky_store/keybox.xml</code>) pairs, per algorithm, a private key with its Google-signed cert chain:</p>
+<pre>&lt;AndroidAttestation&gt;&lt;Keybox DeviceID="..."&gt;
+  &lt;Key algorithm="ecdsa"&gt;
+    &lt;PrivateKey format="pem"&gt; ...EC private key... &lt;/PrivateKey&gt;
+    &lt;CertificateChain&gt;
+      &lt;Certificate&gt; batch/leaf &lt;/Certificate&gt;
+      &lt;Certificate&gt; intermediate &lt;/Certificate&gt;
+      &lt;Certificate&gt; Google root &lt;/Certificate&gt;
+    &lt;/CertificateChain&gt;
+  &lt;/Key&gt;
+  &lt;Key algorithm="rsa"&gt; ... &lt;/Key&gt;
+&lt;/Keybox&gt;&lt;/AndroidAttestation&gt;   <span class="cm">// schematic — no real key material</span></pre>
+<p>The keybox private key is the signing capability an unlocked device otherwise lacks. With it, TrickyStore mints a leaf declaring GREEN/locked and chains to Google's root. A <strong>"hardware"</strong> keybox chains to the Google root (claims <code>TrustedEnvironment</code>); an <strong>AOSP/software</strong> keybox chains only to the public AOSP test root and fools nothing strict.</p>
+<div class="callout warn"><span class="lbl">Revocation</span>Google publishes an attestation <strong>status list / CRL</strong> keyed by certificate serial (<code>android.googleapis.com/attestation/status</code>). Once a leaked keybox's serials are listed, chains built from it are rejected regardless of GREEN state — the reason leaked keyboxes have a shelf life.</div>
+
+<h3>7.4 TrickyStore: interception point &amp; modes</h3>
+<p>Attestation flows <strong>App &rarr; <code>keystore2</code> (AIDL <code>android.system.keystore2</code>) &rarr; KeyMint HAL</strong>. TrickyStore (a KernelSU/Magisk + Zygisk module) inserts at the <code>keystore2</code> boundary and substitutes the certificate chain returned for a <em>targeted caller</em> before it crosses Binder back to the app. Because every app attests through the same service, the hook is <strong>app-agnostic</strong>.</p>
+<div class="callout"><span class="lbl">Precision note</span>The exact injection primitive is version-specific and has changed across releases. The stable claim is the <em>logical</em> hook site: the chain returned by keystore2/KeyMint for an attested key.</div>
+<div class="tbl-wrap"><table>
+<tr><th></th><th>Leaf hack (no keybox)</th><th>Full generation (keybox)</th></tr>
+<tr><td>Changes</td><td>Rewrites RootOfTrust fields, re-signs leaf</td><td>Mints new GREEN/locked leaf, signs with keybox key, appends Google chain</td></tr>
+<tr><td>Chain anchor</td><td><strong>Broken</strong> (re-sign invalidates path)</td><td>Valid to Google root (until revoked)</td></tr>
+<tr><td>Fools</td><td>Verifiers reading boot fields but not validating chain</td><td>Full-validation verifiers (Play Integrity)</td></tr>
+</table></div>
+<p>State it maintains under <code>/data/adb/tricky_store/</code>: <code>keybox.xml</code>, <code>target.txt</code>, <code>security_patch.txt</code> (patch-level overrides), a TEE status probe, and working <code>key_db</code> state.</p>
+
+<h3>7.5 Targeting — <code>target.txt</code></h3>
+<p>A newline-separated allow-list of <strong>calling packages</strong>, watched and re-read on change. Non-listed callers fall through to the real TEE (honest state). A trailing <code>!</code> forces full keybox generation for that package (<em>flag syntax is version-dependent</em>). Listing <code>com.google.android.gms</code> is the linchpin for Play Integrity <code>STRONG</code>: the device verdict is produced by GMS (DroidGuard in <code>com.google.android.gms.unstable</code>), which does its own hardware attestation — only forged if GMS is targeted. A self-attesting bank app is a <em>different caller</em> and must be listed in its own right.</p>
+
+<h3>7.6 Play Integrity relationship &amp; PIF</h3>
+<div class="tbl-wrap"><table>
+<tr><th>Label</th><th>Means</th><th>Primary evidence</th></tr>
+<tr><td><code>MEETS_BASIC_INTEGRITY</code></td><td>Generic, not obviously tampered</td><td>Software signals + plausible fingerprint</td></tr>
+<tr><td><code>MEETS_DEVICE_INTEGRITY</code></td><td>Genuine Play-certified device</td><td>Increasingly hardware-backed attestation</td></tr>
+<tr><td><code>MEETS_STRONG_INTEGRITY</code></td><td>Genuine + recent patch + verified boot</td><td><strong>Hardware key attestation</strong></td></tr>
+</table></div>
+<p><strong>PIF lies about what the device claims to be</strong> (spoofs <code>ro.build.*</code> fingerprint/props); <strong>TrickyStore lies about what the secure hardware certifies</strong> (the attestation chain). Since Google moved DEVICE/STRONG onto hardware attestation, PIF alone no longer reaches STRONG — TrickyStore with an unrevoked keybox carries it there. The exact sufficiency boundary is date/version-dependent.</p>
+
+<div class="fig">
+<div class="cap"><b>Diagram A</b> — end-to-end attestation and the interception decision</div>
+<pre class="mermaid">
+flowchart LR
+  APP["App\nsetAttestationChallenge"] --> KS2["keystore2"]
+  KS2 --> KM["KeyMint HAL (TEE)"]
+  KS2 --> DEC{"TrickyStore:\npackage in target.txt?"}
+  DEC -- "no" --> REAL["Real TEE chain\n(honest boot state)"]
+  DEC -- "yes" --> FORGE["Forged chain\nGREEN + locked,\nkeybox-signed"]
+  REAL --> APP2["App"]
+  FORGE --> APP2
+  APP2 --> NET["Verifier"]
+  NET --> V{"path + challenge +\nboot + revocation"}
+  V -- pass --> OK["Trusted"]
+  V -- fail --> NO["Rejected"]
+</pre>
+</div>
+<div class="fig">
+<div class="cap"><b>Diagram B</b> — targeting &amp; mode decision &rarr; resulting cert path</div>
+<pre class="mermaid">
+flowchart TD
+  START["Attested request\nfrom package P"] --> INTAR{"P in target.txt?"}
+  INTAR -- "no" --> PASS["Real TEE chain"]
+  INTAR -- "yes" --> KBOX{"keybox present\n&amp; not revoked?"}
+  KBOX -- "no" --> LEAF["Leaf hack:\nrewrite RootOfTrust"]
+  KBOX -- "yes" --> GEN["Full generation:\nsign with keybox key"]
+  LEAF --> LP["Broken anchor\n-> weak checks only"]
+  GEN --> GP["Google-rooted chain\n-> full validation"]
+</pre>
+</div>
+<div class="fig">
+<div class="cap"><b>Diagram D</b> — two lanes converge on the keybox</div>
+<pre class="mermaid">
+flowchart TD
+  A1["App -> Play Integrity API"] --> G1["GMS / DroidGuard"]
+  G1 --> PIF["PIF: spoof fingerprint/props"]
+  G1 --> KA1["GMS HW attestation"]
+  A2["Bank app -> KeyStore"] --> KA2["App HW attestation"]
+  KA1 --> TS{"TrickyStore\n(target.txt)"}
+  KA2 --> TS
+  TS --> KB["Forge leaf -> keybox key -> Google root"]
+  KB --> OUT["STRONG / device trusted"]
+</pre>
+</div>
+<div class="fig">
+<div class="cap"><b>Diagram F</b> — chain anatomy &amp; overwritten RootOfTrust fields</div>
+<pre class="mermaid">
+flowchart TD
+  L["LEAF: pubkey + ext OID ...2.1.17"] --> ROT["RootOfTrust (704)"]
+  ROT --> F1["verifiedBootState: Unverified -> Verified"]
+  ROT --> F2["deviceLocked: false -> true"]
+  ROT --> F3["verifiedBootKey: custom -> stock"]
+  ROT --> F4["verifiedBootHash: patched -> stock"]
+  L --> I["INTERMEDIATE(s)"]
+  I --> R["GOOGLE HW ROOT (pinned)"]
+  KBK["keybox private key"] -. signs .-> L
+</pre>
+</div>
+</section>
+
+<!-- ============ SECTION 8 ============ -->
+<section id="s8">
+<h2><span class="num">8</span>The root-hiding ecosystem</h2>
+<p>Integrity attacks are a stack of cooperating modules. Each hides a different signal:</p>
+<div class="tbl-wrap"><table>
+<tr><th>Component</th><th>Hides / forges</th><th>Layer</th></tr>
+<tr><td>Magisk DenyList / KernelSU umount</td><td>Presence of root, <code>su</code>, mounts, module files from a target app</td><td>Mount namespace / kernel</td></tr>
+<tr><td>Zygisk</td><td>Delivers native code into app &amp; system processes at zygote fork</td><td>Injection framework</td></tr>
+<tr><td>Shamiko</td><td>Enhanced hiding (works with DenyList "whitelist" mode)</td><td>Zygisk module</td></tr>
+<tr><td>PIF / PlayIntegrityFork</td><td>Build fingerprint &amp; system props</td><td>Zygisk module</td></tr>
+<tr><td>TrickyStore</td><td>Hardware key attestation chain</td><td>keystore2 hook</td></tr>
+<tr><td>LSPosed</td><td>General Java hooking framework (Xposed API over Zygisk)</td><td>ART hooking</td></tr>
+</table></div>
+<div class="fig">
+<div class="cap"><b>Diagram E</b> — component view: KernelSU/Zygisk + TrickyStore + PIF over Keystore2/KeyMint</div>
+<pre class="mermaid">
+flowchart TB
+  subgraph USER["User space"]
+    APP["Apps / bank / GMS"] --> FW["AndroidKeyStore provider"]
+    FW --> KS2["keystore2 daemon"]
+    PIF["PIF (spoof props)"] -.-> APP
+  end
+  subgraph HOOK["Root module layer"]
+    KSU["KernelSU / Magisk + Zygisk"] --> TS["TrickyStore hook"]
+    TS -.reads.-> KBX[("keybox.xml")]
+    TS -.reads.-> TGT[("target.txt")]
+    TS -.state.-> KDB[("key_db / security_patch.txt")]
+  end
+  KS2 --- TS
+  KS2 --> KM["KeyMint TA (TEE)"]
+  KS2 --> SB["StrongBox SE"]
+  TS == "substitutes chain" ==> KS2
+</pre>
+</div>
+</section>
+
+<!-- ============ SECTION 9 ============ -->
+<section id="s9">
+<h2><span class="num">9</span>Building KernelSU / Magisk modules</h2>
+<p>Magisk and KernelSU share a <strong>flashable-module</strong> format and script lifecycle, so one module often runs on both. A module is a ZIP with a defined layout; the manager mounts it "systemless" (overlaid, never touching the real partitions) and runs its scripts at boot stages.</p>
+
+<h3>9.1 Module layout</h3>
+<pre>my-module.zip
+├─ module.prop            <span class="cm"># identity/metadata (required)</span>
+├─ META-INF/com/google/android/
+│   ├─ update-binary      <span class="cm"># stock installer stub (copy from template)</span>
+│   └─ updater-script     <span class="cm"># must contain: #MAGISK</span>
+├─ customize.sh           <span class="cm"># install-time logic (optional)</span>
+├─ post-fs-data.sh        <span class="cm"># runs early, pre-Zygote, blocking</span>
+├─ service.sh            <span class="cm"># runs late_start (post-boot), non-blocking</span>
+├─ uninstall.sh           <span class="cm"># cleanup on removal</span>
+├─ system/                <span class="cm"># files overlaid onto /system (systemless)</span>
+│   └─ ...
+├─ system.prop            <span class="cm"># resetprop key=value applied at boot</span>
+├─ sepolicy.rule          <span class="cm"># custom SELinux rules (magiskpolicy)</span>
+└─ zygisk/                <span class="cm"># Zygisk native libs (arm64-v8a/, x86_64/) if any</span></pre>
+
+<h4>module.prop</h4>
+<pre>id=demo_module
+name=Demo Module
+version=v1.0
+versionCode=1
+author=you
+description=Minimal Magisk/KernelSU module demo</pre>
+
+<h3>9.2 Boot-stage scripts &amp; load order</h3>
+<div class="tbl-wrap"><table>
+<tr><th>Stage</th><th>Script</th><th>Timing / property</th><th>Use for</th></tr>
+<tr><td>post-fs-data</td><td><code>post-fs-data.sh</code></td><td>Before Zygote, <strong>blocking</strong>, ~pre-boot</td><td>File setup, mounts, prop overrides that must precede app start</td></tr>
+<tr><td>late_start</td><td><code>service.sh</code></td><td>After boot completes, non-blocking</td><td>Anything not needed pre-Zygote; safer for heavy work</td></tr>
+<tr><td>boot-complete</td><td><code>boot-completed.sh</code></td><td>On <code>sys.boot_completed</code> (newer Magisk)</td><td>Post-boot tasks needing full framework</td></tr>
+<tr><td>install</td><td><code>customize.sh</code></td><td>At flash time</td><td>ABI checks, conditional file placement, <code>set_perm</code></td></tr>
+</table></div>
+<pre><span class="cm"># post-fs-data.sh — MODPATH points at the mounted module dir</span>
+MODDIR=${0%/*}
+<span class="cm"># example: seed a config the module will consume</span>
+mkdir -p /data/adb/demo
+[ -f /data/adb/demo/config ] || echo "enabled=1" &gt; /data/adb/demo/config</pre>
+<pre><span class="cm"># service.sh — runs late; safe place for resetprop spoofing</span>
+MODDIR=${0%/*}
+resetprop ro.demo.flag 1
+resetprop -n ro.debuggable 0</pre>
+
+<h3>9.3 Systemless file replacement</h3>
+<p>Anything under the module's <code>system/</code> is overlaid at the matching path. To ship a file to <code>/system/etc/hosts</code>, place it at <code>system/etc/hosts</code> in the module. Use a <code>.replace</code> empty folder to fully mask a stock directory. This is how a "MoveCert" module injects a CA into the system trust store without a writable <code>/system</code>.</p>
+
+<h3>9.4 Zygisk modules (native injection + companion)</h3>
+<p>Zygisk modules run native code inside <em>every</em> forked app/system process. This is what PIF and Shamiko use. Skeleton:</p>
+<pre><span class="cm">// C++ against the Zygisk API header (zygisk.hpp)</span>
+class DemoModule : public zygisk::ModuleBase {
+  void onLoad(zygisk::Api *api, JNIEnv *env) override { this-&gt;api=api; this-&gt;env=env; }
+  <span class="cm">// called before app specialization: decide per-process action</span>
+  void preAppSpecialize(zygisk::AppSpecializeArgs *args) override {
+     const char *pkg = env-&gt;GetStringUTFChars(args-&gt;nice_name, nullptr);
+     if (strcmp(pkg,"com.target.app")==0) { /* set up hooks / spoof here */ }
+     <span class="cm">// request unload if not needed, to shrink footprint &amp; detection</span>
+     api-&gt;setOption(zygisk::DLCLOSE_MODULE_LIBRARY);
+  }
+  void postAppSpecialize(const zygisk::AppSpecializeArgs *) override {}
+private: zygisk::Api *api; JNIEnv *env;
+};
+REGISTER_ZYGISK_MODULE(DemoModule)
+<span class="cm">// heavy/root work is delegated to a "companion" running in the Magisk daemon:</span>
+REGISTER_ZYGISK_COMPANION(demo_companion)</pre>
+<p>Key ideas: <code>preAppSpecialize</code> lets you branch on the target package; the <strong>companion</strong> process (in the privileged daemon) does root-level work and passes results back over a socket, since the injected process itself is unprivileged. PLT/inline hooks are typically installed here.</p>
+
+<h3>9.5 KernelSU specifics</h3>
+<ul>
+<li>Root is granted by the <strong>kernel</strong>, and app access is governed by KernelSU's <strong>app-profile</strong> (per-UID <code>su</code> policy + SELinux context), not a userspace daemon.</li>
+<li>Requires a KernelSU-patched kernel or a GKI (Generic Kernel Image) module — more setup than Magisk but harder to detect from userspace.</li>
+<li>Module format is Magisk-compatible; KernelSU adds <code>boot-completed</code> and a <strong>WebUI</strong> (<code>webroot/index.html</code>) for module UIs.</li>
+<li><code>post-mount.sh</code> / <code>umount</code> hooks assist hiding from DenyList-style targets.</li>
+</ul>
+
+<div class="callout"><span class="lbl">Test loop</span>Build the ZIP, <code>adb push</code>, flash via the manager (or <code>magisk --install-module</code> / KernelSU CLI), reboot, then verify with <code>logcat</code>, <code>resetprop</code> reads, and the app's own behavior. Keep modules minimal — every injected library is a detection surface (Section 13).</div>
+
+<div class="fig">
+<div class="cap"><b>Diagram I</b> — module load order and injection path</div>
+<pre class="mermaid">
+flowchart TD
+  BOOT["Boot"] --> PFD["post-fs-data.sh\n(blocking, pre-Zygote)"]
+  PFD --> SYS["system/ overlay + system.prop\n(resetprop)"]
+  SYS --> ZYG["Zygote starts\n+ Zygisk loads native modules"]
+  ZYG --> FORK["App process fork"]
+  FORK --> PRE["preAppSpecialize:\nbranch on package"]
+  PRE --> HOOK["install PLT/inline hooks\n(companion does root work)"]
+  BOOT --> LATE["service.sh\n(late_start, non-blocking)"]
+</pre>
+</div>
+</section>
+
+<!-- ============ SECTION 10 ============ -->
+<section id="s10">
+<h2><span class="num">10</span>Hooking — theory</h2>
+<p><strong>Hooking</strong> = intercepting a function call to observe or alter its arguments, return value, or side effects at runtime. On Android there are two worlds — <em>managed</em> (Java/Kotlin on ART) and <em>native</em> (C/C++ in <code>.so</code>) — and different mechanics for each.</p>
+
+<h3>10.1 Java / ART hooking</h3>
+<div class="tbl-wrap"><table>
+<tr><th>Technique</th><th>How</th><th>Tooling</th></tr>
+<tr><td>Method entrypoint swap</td><td>Replace the ArtMethod's compiled/interpreter entrypoint or mark it native and trampoline</td><td>Frida (Java API), Xposed/LSPosed, YAHFA, Dobby-based</td></tr>
+<tr><td>Xposed-style</td><td><code>findAndHookMethod</code> with before/after callbacks; framework rewrites the method</td><td>LSPosed (Zygisk), EdXposed</td></tr>
+<tr><td>Dynamic proxy / reflection</td><td>Wrap interfaces, swap fields via reflection</td><td>Frida <code>Java.use</code>/<code>Java.choose</code></td></tr>
+</table></div>
+<p>Frida's <code>Java.perform</code> resolves classes via the runtime, replaces a method's implementation with a JS closure, and hands you <code>this</code>, the original method, and typed arguments. It works because ART lets a loaded agent rewrite method entrypoints in-process.</p>
+
+<h3>10.2 Native hooking</h3>
+<div class="tbl-wrap"><table>
+<tr><th>Technique</th><th>Mechanism</th><th>Catches</th></tr>
+<tr><td><strong>PLT/GOT hook</strong></td><td>Rewrite the Global Offset Table entry so calls to an imported symbol jump to your stub</td><td>Only calls that go through the PLT (imported/exported)</td></tr>
+<tr><td><strong>Inline (trampoline) hook</strong></td><td>Overwrite the first instructions of the target with a jump; relocate the originals</td><td>Any address, incl. internal/static functions</td></tr>
+<tr><td><strong>Import/Export by symbol</strong></td><td>Resolve via <code>dlsym</code> / module exports, then Interceptor.attach</td><td>Exported functions (e.g. <code>SSL_read</code>)</td></tr>
+<tr><td><strong>Stalker (tracing)</strong></td><td>Dynamic recompilation of instruction streams</td><td>Coverage/tracing without static patches</td></tr>
+</table></div>
+<p>Frida's <code>Interceptor.attach(addr, {onEnter, onLeave})</code> is an inline-hook engine; <code>Interceptor.replace</code> swaps a whole function; <code>Module.getExportByName</code> resolves symbols. For internal native functions with no symbol, you <strong>pattern-scan</strong> (<code>Memory.scan</code>) for a byte signature — the standard approach for Flutter/BoringSSL pinning.</p>
+
+<div class="fig">
+<div class="cap"><b>Diagram J</b> — hooking taxonomy: two worlds, matching mechanics</div>
+<pre class="mermaid">
+flowchart TD
+  ROOT["Runtime hooking"] --> J["Managed (Java/ART)"]
+  ROOT --> N["Native (.so)"]
+  J --> J1["Entrypoint swap\n(Frida Java.use)"]
+  J --> J2["Xposed API\n(LSPosed)"]
+  N --> N1["PLT/GOT rewrite"]
+  N --> N2["Inline trampoline\n(Interceptor.attach)"]
+  N --> N3["Pattern scan\n(Memory.scan) for\nunsymboled funcs"]
+  N --> N4["Stalker tracing"]
+</pre>
+</div>
+
+<h3>10.3 Injection: how the agent gets in</h3>
+<ul>
+<li><strong>frida-server</strong> (rooted) — a daemon runs as root; the client attaches/spawns and injects the agent via <code>ptrace</code>. Most flexible.</li>
+<li><strong>frida-gadget</strong> (no root) — a shared library embedded into a <em>repackaged</em> APK (add to <code>lib/</code>, load early); runs inside the app with no separate server.</li>
+<li><strong>Zygisk/LSPosed</strong> — persistent, boot-time hooking framework (Section 9.4).</li>
+<li><strong>ptrace/LD_PRELOAD</strong> — classic native injection primitives underneath the above.</li>
+</ul>
+</section>
+
+<!-- ============ SECTION 11 ============ -->
+<section id="s11">
+<h2><span class="num">11</span>Frida — test-case catalog</h2>
+<div class="callout warn"><span class="lbl">Authorization</span>Every script below is standard OWASP MASTG dynamic-analysis material. Run only against apps you own or are explicitly authorized to test.</div>
+
+<h3>11.1 Setup &amp; the two attach modes</h3>
+<pre><span class="cm"># rooted device: push matching frida-server, run as root</span>
+adb push frida-server /data/local/tmp/ &amp;&amp; adb shell "chmod 755 /data/local/tmp/frida-server"
+adb shell "su -c /data/local/tmp/frida-server &amp;"
+frida-ps -Ua                       <span class="cm"># list running user apps</span>
+<span class="cm"># ATTACH to a running process (misses early init):</span>
+frida -U -n com.target.app -l hook.js
+<span class="cm"># SPAWN + instrument from process start (catches init-time checks):</span>
+frida -U -f com.target.app -l hook.js --no-pause</pre>
+<p><strong>Spawn</strong> is essential for root/pinning checks that run in <code>Application.onCreate</code> before you could attach.</p>
+
+<h3>11.2 Test case — universal-ish SSL pinning bypass (OkHttp + TrustManager)</h3>
+<pre>Java.perform(function () {
+  <span class="cm">// OkHttp CertificatePinner.check() -&gt; no-op</span>
+  try {
+    var CP = Java.use('okhttp3.CertificatePinner');
+    CP.check.overload('java.lang.String','java.util.List').implementation = function () {
+      console.log('[+] OkHttp pinning bypassed'); return;
+    };
+  } catch (e) {}
+  <span class="cm">// Replace the default TrustManager with an all-trusting one</span>
+  var X509TM = Java.use('javax.net.ssl.X509TrustManager');
+  var SSLContext = Java.use('javax.net.ssl.SSLContext');
+  var TM = Java.registerClass({
+    name: 'org.test.TrustAll',
+    implements: [X509TM],
+    methods: {
+      checkClientTrusted: function () {},
+      checkServerTrusted: function () {},
+      getAcceptedIssuers: function () { return []; }
+    }
+  });
+  var init = SSLContext.init.overload(
+    '[Ljavax.net.ssl.KeyManager;','[Ljavax.net.ssl.TrustManager;','java.security.SecureRandom');
+  init.implementation = function (km, tm, sr) {
+    console.log('[+] SSLContext.init hooked -&gt; injecting TrustAll');
+    init.call(this, km, [TM.$new()], sr);
+  };
+});</pre>
+<p>For native/BoringSSL or Flutter pinning, this Java hook won't fire — fall back to a native Interceptor (11.6) or a maintained "universal unpinning" script.</p>
+
+<h3>11.3 Test case — root / emulator detection bypass</h3>
+<pre>Java.perform(function () {
+  <span class="cm">// 1) File.exists() lies about su / Magisk paths</span>
+  var F = Java.use('java.io.File');
+  var bad = ['su','magisk','superuser','busybox'];
+  F.exists.implementation = function () {
+    var p = this.getAbsolutePath().toLowerCase();
+    for (var i=0;i&lt;bad.length;i++) if (p.indexOf(bad[i])!==-1){
+      console.log('[+] hide '+p); return false; }
+    return this.exists();
+  };
+  <span class="cm">// 2) Runtime.exec('which su') -&gt; throw / empty</span>
+  var RT = Java.use('java.lang.Runtime');
+  RT.exec.overload('java.lang.String').implementation = function (cmd) {
+    if (cmd.indexOf('su')!==-1 || cmd.indexOf('which')!==-1)
+      { console.log('[+] block exec: '+cmd); return this.exec('true'); }
+    return this.exec(cmd);
+  };
+  <span class="cm">// 3) build props (emulator tells)</span>
+  var B = Java.use('android.os.Build');
+  B.FINGERPRINT.value = 'google/redfin/redfin:13/...';  <span class="cm">// stock-looking</span>
+});</pre>
+
+<h3>11.4 Test case — crypto interception (see keys/plaintext)</h3>
+<pre>Java.perform(function () {
+  var Cipher = Java.use('javax.crypto.Cipher');
+  Cipher.doFinal.overload('[B').implementation = function (input) {
+    var out = this.doFinal(input);
+    console.log('[Cipher] alg='+this.getAlgorithm()+
+      '  in='+bytesToHex(input)+'  out='+bytesToHex(out));
+    return out;
+  };
+  var SKS = Java.use('javax.crypto.spec.SecretKeySpec');
+  SKS.$init.overload('[B','java.lang.String').implementation = function (k, a) {
+    console.log('[Key] '+a+' = '+bytesToHex(k));   <span class="cm">// reveals hardcoded keys</span>
+    return this.$init(k, a);
+  };
+});
+function bytesToHex(b){var s='';for(var i=0;i&lt;b.length;i++){var v=(b[i]&amp;0xff).toString(16);
+  s+=(v.length==1?'0':'')+v;}return s;}</pre>
+
+<h3>11.5 Test case — auth/feature-flag flip &amp; stack traces</h3>
+<pre>Java.perform(function () {
+  var Sec = Java.use('com.target.app.SecurityManager');
+  Sec.isDeviceSecure.implementation = function () {
+    <span class="cm">// print who called, then force the "secure" answer</span>
+    console.log(Java.use('android.util.Log')
+      .getStackTraceString(Java.use('java.lang.Exception').$new()));
+    return true;
+  };
+});</pre>
+
+<h3>11.6 Test case — native hooks (Interceptor)</h3>
+<pre><span class="cm">// Trace an exported native symbol (e.g. SSL_read to dump TLS plaintext)</span>
+Interceptor.attach(Module.getExportByName('libssl.so','SSL_read'), {
+  onEnter: function (args) { this.buf = args[1]; },
+  onLeave: function (ret) {
+    var n = ret.toInt32();
+    if (n &gt; 0) console.log(hexdump(this.buf, {length: n}));
+  }
+});
+<span class="cm">// Hook an internal (unsymboled) function by byte-signature pattern scan</span>
+var m = Process.getModuleByName('libapp.so');
+Memory.scan(m.base, m.size, '55 41 57 41 56 41 55 41 54', {
+  onMatch: function (addr) {
+    Interceptor.replace(addr, new NativeCallback(function () { return 1; }, 'int', []));
+  }, onComplete: function () {}
+});</pre>
+
+<h3>11.7 frida-trace &amp; RPC</h3>
+<pre><span class="cm"># auto-generate stubs for every matching function and log calls</span>
+frida-trace -U -f com.target.app -j '*!*login*'          <span class="cm"># Java methods</span>
+frida-trace -U -n com.target.app -i 'open*' -i 'SSL_*'    <span class="cm"># native imports</span>
+<span class="cm"># expose an in-app function to your host via RPC (rpc.exports)</span></pre>
+<div class="tbl-wrap"><table>
+<tr><th>Frida primitive</th><th>Use</th></tr>
+<tr><td><code>Java.perform / Java.use / Java.choose</code></td><td>Resolve classes, hook methods, find live instances on the heap</td></tr>
+<tr><td><code>Interceptor.attach / .replace</code></td><td>Native inline hook / full replacement</td></tr>
+<tr><td><code>Module.getExportByName / Process.enumerateModules</code></td><td>Symbol &amp; module resolution</td></tr>
+<tr><td><code>Memory.scan / Memory.protect / NativeFunction</code></td><td>Pattern scan, patch, call native code</td></tr>
+<tr><td><code>Stalker</code></td><td>Instruction-level tracing / coverage</td></tr>
+<tr><td><code>rpc.exports</code></td><td>Drive hooked functions from a host script</td></tr>
+</table></div>
+</section>
+
+<!-- ============ SECTION 12 ============ -->
+<section id="s12">
+<h2><span class="num">12</span>Objection — test-case catalog</h2>
+<p>Objection is a Frida-powered runtime toolkit that packages the common test cases as commands — no custom JS needed for the routine ones. It also patches APKs to embed frida-gadget for <strong>non-rooted</strong> devices.</p>
+
+<h3>12.1 Setup</h3>
+<pre><span class="cm"># rooted: attach via frida-server</span>
+objection -g com.target.app explore
+<span class="cm"># non-rooted: repackage the APK with frida-gadget injected, then install</span>
+objection patchapk -s target.apk
+adb install objection-patched.apk</pre>
+
+<h3>12.2 Command test cases</h3>
+<div class="tbl-wrap"><table>
+<tr><th>Goal</th><th>Command</th></tr>
+<tr><td>Disable SSL pinning (chains many hooks)</td><td><code>android sslpinning disable</code></td></tr>
+<tr><td>Bypass common root checks</td><td><code>android root disable</code></td></tr>
+<tr><td>List / dump SharedPreferences &amp; storage</td><td><code>android hooking list ...</code>, <code>env</code>, <code>ls</code></td></tr>
+<tr><td>List loaded classes / methods</td><td><code>android hooking list classes</code> / <code>... class_methods &lt;cls&gt;</code></td></tr>
+<tr><td>Search for a class/method by keyword</td><td><code>android hooking search classes &lt;kw&gt;</code> / <code>... methods &lt;kw&gt;</code></td></tr>
+<tr><td>Watch a method (args, return, backtrace)</td><td><code>android hooking watch class_method &lt;m&gt; --dump-args --dump-return --dump-backtrace</code></td></tr>
+<tr><td>Set a method's return value</td><td><code>android hooking set return_value &lt;m&gt; false</code></td></tr>
+<tr><td>Dump the AndroidKeyStore entries</td><td><code>android keystore list</code></td></tr>
+<tr><td>List &amp; query app SQLite DBs</td><td><code>sqlite connect &lt;db&gt;</code> then SQL</td></tr>
+<tr><td>Search process memory for a string</td><td><code>memory search "secret" --string</code></td></tr>
+<tr><td>Dump memory regions</td><td><code>memory dump all &lt;out&gt;</code> / <code>memory list modules</code></td></tr>
+<tr><td>Enumerate activities/services &amp; launch</td><td><code>android hooking list activities</code>; then <code>am start</code></td></tr>
+</table></div>
+<p>The typical Objection flow: <code>explore</code> &rarr; <code>android sslpinning disable</code> &amp; <code>android root disable</code> &rarr; <code>android hooking search methods &lt;auth&gt;</code> &rarr; <code>watch</code> the interesting one with <code>--dump-args --dump-backtrace</code> &rarr; drop to a Frida script for anything Objection can't express. It is the fast path for the routine test cases; hand-written Frida (Section 11) is the fallback for bespoke logic, native pinning, and pattern-scanning.</p>
+</section>
+
+<!-- ============ SECTION 13 ============ -->
+<section id="s13">
+<h2><span class="num">13</span>Detection &amp; anti-instrumentation</h2>
+<p>Apps and servers push back at three layers. Knowing the checks is both the offense (what to expect) and the defense (what to deploy).</p>
+
+<h3>13.1 On-device: root / hook / debugger detection</h3>
+<div class="tbl-wrap"><table>
+<tr><th>Signal</th><th>Check</th><th>Weakness the attacker uses</th></tr>
+<tr><td>Root files</td><td><code>su</code>, Magisk paths, <code>which su</code></td><td>Hook <code>File.exists</code>/<code>exec</code> (11.3)</td></tr>
+<tr><td>Mounts / props</td><td><code>/proc/mounts</code>, <code>ro.debuggable</code>, test-keys</td><td>DenyList/umount + resetprop (Section 8)</td></tr>
+<tr><td>Frida presence</td><td>Port 27042, <code>frida-agent</code> in <code>/proc/self/maps</code>, named pipes, thread names</td><td>Non-default server port, gadget mode, string obfuscation</td></tr>
+<tr><td>Native maps scan</td><td>Scan <code>/proc/self/maps</code> for injected <code>.so</code></td><td>Zygisk <code>DLCLOSE</code>, map hiding</td></tr>
+<tr><td>Ptrace self-attach</td><td>Anti-debug via <code>ptrace(PTRACE_TRACEME)</code></td><td>Hook <code>ptrace</code> in native</td></tr>
+<tr><td>Integrity/signature</td><td>APK signature &amp; checksum self-check (RASP)</td><td>Prefer live hooking over repackaging</td></tr>
+</table></div>
+
+<h3>13.2 Server-side: the checks a strong verifier keeps</h3>
+<div class="tbl-wrap"><table>
+<tr><th>Defense</th><th>Why forgery can still fail</th></tr>
+<tr><td>Keybox revocation (status list/CRL)</td><td>Leaked keybox serials get listed &rarr; forged chain rejected regardless of GREEN</td></tr>
+<tr><td>ID attestation</td><td>Requested device IDs must match; keybox batch identity / forged IDs are hard to keep consistent</td></tr>
+<tr><td>StrongBox requirement</td><td>Most forges claim only <code>TrustedEnvironment</code>; a StrongBox-only policy rejects them</td></tr>
+<tr><td>Patch-level freshness</td><td><code>security_patch.txt</code> must stay current <em>and</em> consistent with the spoofed fingerprint — drift is a tell</td></tr>
+<tr><td>RKP / provisioning shape</td><td>A static factory-keybox chain on an RKP device is anomalous</td></tr>
+<tr><td>Server correlation</td><td>Fingerprint, patch dates, boot hash, security level, account/device history cross-checked</td></tr>
+</table></div>
+<div class="callout crit"><span class="lbl">Key takeaway</span>Path-validation success is necessary, not sufficient. The controls an on-device module <em>cannot</em> forge — Google's revocation and server-side correlation — are what ultimately break the chain. A bank pinning StrongBox, requiring ID attestation, and checking the status list can reject a forged-but-well-formed chain that fools a naive verifier.</div>
+</section>
+
+<!-- ============ GLOSSARY ============ -->
+<section id="gloss">
+<h2>Glossary</h2>
+<dl class="gloss">
+<dt>AVB (Android Verified Boot)</dt><dd>Cryptographic verification of each boot stage; sets verified-boot state (GREEN/YELLOW/ORANGE/RED).</dd>
+<dt>MASVS / MASTG</dt><dd>OWASP Mobile App Security Verification Standard &amp; Testing Guide — the control/test reference.</dd>
+<dt>keystore2 / KeyMint</dt><dd>Android 12+ AIDL keystore service and its TEE-resident HAL, replacing legacy keystore/Keymaster.</dd>
+<dt>Attestation extension</dt><dd>X.509 extension OID <code>1.3.6.1.4.1.11129.2.1.17</code> in the leaf cert; carries challenge, security level, RootOfTrust.</dd>
+<dt>RootOfTrust</dt><dd>ASN.1 SEQUENCE (tag 704): <code>verifiedBootKey</code>, <code>deviceLocked</code>, <code>verifiedBootState</code>, <code>verifiedBootHash</code> — the forged fields.</dd>
+<dt>Keybox</dt><dd>OEM provisioning artifact: attestation private key + Google-signed chain. Leaked "hardware" keyboxes enable full forging.</dd>
+<dt>StrongBox / RKP</dt><dd>Discrete secure element (higher assurance than TEE); Remote Key Provisioning issues per-device certs from Google's backend.</dd>
+<dt>Magisk / KernelSU / Zygisk</dt><dd>Userspace root manager / kernel-space root / zygote-fork native injection framework.</dd>
+<dt>PIF / TrickyStore</dt><dd>Module spoofing build fingerprint/props / module forging the hardware attestation chain.</dd>
+<dt>Hooking</dt><dd>Runtime interception of a call to observe/alter it; Java (ART entrypoint swap) or native (PLT-GOT / inline).</dd>
+<dt>Frida / Objection</dt><dd>Dynamic instrumentation toolkit / Frida-powered runtime toolkit packaging common mobile test cases.</dd>
+<dt>frida-server / frida-gadget</dt><dd>Root daemon injecting agents / embeddable library for non-rooted, repackaged APKs.</dd>
+<dt>RASP</dt><dd>Runtime Application Self-Protection — in-app root/hook/integrity detection.</dd>
+</dl>
+</section>
+
+<div class="note">
+Educational reference on Android platform-security internals, offensive techniques, and their detection, for authorized testing and defense. Contains no leaked keybox material, private keys, or per-victim evasion recipe. Version-specific behavior (attestation versions, Play Integrity thresholds, module flag syntax, RKP adoption, Frida/Objection command surfaces) evolves — treat exact internals as time-dependent and verify against current tool docs.
+</div>
+
+<a class="topjump" href="#top">&uarr; top</a>
+</div>
+
+<script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+mermaid.initialize({
+  startOnLoad:true, theme:"base", securityLevel:"strict",
+  themeVariables:{
+    fontFamily:'"IBM Plex Mono", monospace', fontSize:"13px",
+    background:"#0F1E24", primaryColor:"#132831", primaryTextColor:"#EDF5F5",
+    primaryBorderColor:"#1E3B47", lineColor:"#4FC3D9", secondaryColor:"#0F1E24",
+    tertiaryColor:"#0A1418", clusterBkg:"#0A1418", clusterBorder:"#1E3B47",
+    edgeLabelBackground:"#0A1418", actorBkg:"#132831", actorBorder:"#F2A03D",
+    actorTextColor:"#EDF5F5", signalColor:"#9DB6BF", signalTextColor:"#CFE6EC",
+    labelBoxBkgColor:"#132831", labelBoxBorderColor:"#1E3B47",
+    noteBkgColor:"#132831", noteTextColor:"#EDF5F5"
+  }
+});
+</script>
+</body>
+</html>
