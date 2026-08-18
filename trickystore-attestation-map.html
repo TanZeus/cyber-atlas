@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrickyStore &amp; Android Attestation — technical map · Cyber Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#0A1418; --slab:#0F1E24; --panel:#132831; --edge:#1E3B47;
+  --mist:#9DB6BF; --bone:#EDF5F5; --dim:#5F7C88;
+  --signal:#F2A03D; --cool:#4FC3D9;
+  --crit:#FF5C57; --high:#F2A03D; --med:#E8D14A; --low:#6FD08C;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --sans:"IBM Plex Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--void);
+  background-image:linear-gradient(var(--slab) 1px,transparent 1px),linear-gradient(90deg,var(--slab) 1px,transparent 1px);
+  background-size:44px 44px;
+  color:var(--mist);font-family:var(--sans);font-size:15px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 100px}
+a{color:var(--cool);text-decoration:none;border-bottom:1px solid rgba(79,195,217,.3)}
+a:hover{color:var(--bone);border-color:var(--cool)}
+
+header{padding:34px 0 22px;border-bottom:1px solid var(--edge);margin-bottom:10px}
+.brand{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--dim);text-transform:uppercase}
+.back{float:right;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+h1{font-family:var(--mono);font-weight:600;font-size:clamp(24px,4vw,36px);color:var(--bone);margin:8px 0 6px;letter-spacing:-.02em}
+h1 span{color:var(--signal)}
+.sub{margin:0;max-width:74ch;color:var(--mist)}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.chip{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;
+  border:1px solid var(--edge);color:var(--mist);border-radius:2px}
+.chip.warn{color:var(--signal);border-color:var(--signal)}
+
+.exec{border:1px solid var(--edge);border-left:2px solid var(--signal);background:var(--slab);padding:18px 22px;margin:28px 0}
+.exec ol{margin:0;padding-left:20px}
+.exec li{margin:5px 0;color:var(--bone)}
+
+.toc{border:1px solid var(--edge);background:var(--slab);padding:16px 22px;margin:0 0 34px;
+  columns:2;column-gap:34px}
+.toc a{display:block;font-family:var(--mono);font-size:12.5px;padding:4px 0;border:0;color:var(--mist)}
+.toc a:hover{color:var(--signal)}
+@media(max-width:680px){.toc{columns:1}}
+
+section{margin:44px 0;scroll-margin-top:16px}
+h2{font-family:var(--mono);font-size:20px;color:var(--bone);margin:0 0 6px;font-weight:600;letter-spacing:-.01em;
+  padding-top:16px;border-top:1px solid var(--edge)}
+h2 .num{color:var(--signal);margin-right:10px}
+h3{font-family:var(--mono);font-size:14px;color:var(--cool);letter-spacing:.02em;margin:26px 0 8px;font-weight:600}
+p{margin:12px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--void);border:1px solid var(--edge);
+  padding:1px 6px;border-radius:2px;color:#CFE6EC;word-break:break-word}
+strong{color:var(--bone);font-weight:600}
+
+pre{margin:16px 0;background:var(--void);border:1px solid var(--edge);border-left:2px solid var(--cool);
+  padding:14px 16px;font-family:var(--mono);font-size:12.5px;color:#CFE6EC;overflow-x:auto;line-height:1.7}
+
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+th,td{border:1px solid var(--edge);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:var(--panel);color:var(--bone);font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;font-weight:600}
+td{color:var(--mist)}
+td code,th code{background:transparent;border:0;padding:0;color:var(--cool)}
+.tbl-wrap{overflow-x:auto}
+
+.callout{border:1px dashed var(--edge);background:rgba(79,195,217,.05);padding:13px 16px;margin:16px 0}
+.callout.warn{border-color:rgba(242,160,61,.5);background:rgba(242,160,61,.06)}
+.callout .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--signal);display:block;margin-bottom:5px}
+
+.fig{margin:22px 0;border:1px solid var(--edge);background:var(--slab);padding:6px 6px 12px}
+.fig .cap{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
+  padding:9px 14px 4px}
+.fig .cap b{color:var(--signal)}
+.mermaid{background:transparent;text-align:center;overflow-x:auto;padding:8px}
+
+.gloss dt{font-family:var(--mono);color:var(--signal);font-size:13px;margin-top:12px}
+.gloss dd{margin:2px 0 0;padding-left:0;color:var(--mist)}
+
+.note{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:40px;padding-top:16px;border-top:1px solid var(--edge)}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <a class="back" href="./index.html">&larr; Cyber Atlas</a>
+  <div class="brand">Deep dive · Android platform security</div>
+  <h1>TrickyStore &amp; Hardware <span>Key Attestation</span></h1>
+  <p class="sub">A control- and data-flow map of how Android hardware key attestation works, how TrickyStore forges it at the Keystore2/KeyMint boundary, how a leaked keybox turns a self-signed leaf into a Google-rooted chain, and why that yields Play Integrity <code>STRONG</code>. Written for OS-level understanding of the mechanism and its detection — not as an evasion recipe.</p>
+  <div class="tags">
+    <span class="chip">Keystore2 / KeyMint</span>
+    <span class="chip">OID 1.3.6.1.4.1.11129.2.1.17</span>
+    <span class="chip">Play Integrity</span>
+    <span class="chip warn">Educational · defensive</span>
+  </div>
+</header>
+
+<div class="exec">
+<strong style="font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--signal)">Executive summary</strong>
+<ol>
+<li>Android key attestation lets a remote verifier trust a device by having secure hardware (TEE/StrongBox) sign a certificate whose extension states the boot state, patch level, and a caller-supplied challenge, chaining up to a Google-controlled root CA.</li>
+<li>TrickyStore is a root (KernelSU/Magisk + Zygisk) module that intercepts the certificate chain returned by <code>keystore2</code>/KeyMint and substitutes a forged chain <em>before it reaches the app</em>, so the forgery is app-agnostic and needs no per-app hooking.</li>
+<li>The enabling asset is a <strong>leaked "hardware" keybox</strong> — a Google-signed EC/RSA batch key plus its cert chain — which lets TrickyStore mint a fresh leaf that declares <code>verifiedBootState = Verified (GREEN)</code>, <code>deviceLocked = true</code> and validates all the way to Google's attestation root.</li>
+<li>A <code>target.txt</code> allow-list decides which calling packages get a forged chain; non-listed apps fall through to the real TEE. Listing <code>com.google.android.gms</code> makes Play Integrity's own attestation use the forged chain, producing <code>MEETS_STRONG_INTEGRITY</code>.</li>
+<li>It defeats naive verifiers but not strong ones: Google revokes leaked keyboxes via a status/CRL list, ID-attestation and StrongBox expectations can mismatch, and freshness/RKP checks can still reject a forged-but-well-formed chain.</li>
+</ol>
+</div>
+
+<nav class="toc">
+  <a href="#s1">1 · Hardware key attestation from first principles</a>
+  <a href="#s2">2 · The keybox: the enabling asset</a>
+  <a href="#s3">3 · TrickyStore architecture &amp; interception point</a>
+  <a href="#s4">4 · Targeting: the target.txt mechanism</a>
+  <a href="#s5">5 · Relationship to Play Integrity</a>
+  <a href="#s6">6 · Detection &amp; failure modes</a>
+  <a href="#s7">7 · Android architecture (context)</a>
+  <a href="#s8">8 · Attacks on the Android architecture</a>
+  <a href="#gloss">Glossary</a>
+</nav>
+
+<!-- ============ SECTION 1 ============ -->
+<section id="s1">
+<h2><span class="num">1</span>Hardware key attestation from first principles</h2>
+
+<p>Key attestation answers one question for a remote party: <em>"was this key really generated and held inside this device's secure hardware, on a device in a known boot state?"</em> The app never sees the private key; instead the secure environment signs a certificate that <strong>describes the key and the device</strong>, and that certificate chains to a root the verifier already trusts.</p>
+
+<h3>1.1 The app-side API surface</h3>
+<p>An app requests attestation by generating a key with a <strong>challenge</strong> supplied by the verifier (the nonce that binds the attestation to a specific request):</p>
+<pre>KeyPairGenerator kpg = KeyPairGenerator.getInstance(
+        KeyProperties.KEY_ALGORITHM_EC, "AndroidKeyStore");
+kpg.initialize(new KeyGenParameterSpec.Builder(
+        "attest_key",                       // alias
+        KeyProperties.PURPOSE_SIGN)
+    .setAlgorithmParameterSpec(new ECGenParameterSpec("secp256r1"))
+    .setDigests(KeyProperties.DIGEST_SHA256)
+    .setAttestationChallenge(serverNonce)   // &lt;-- binds chain to verifier
+    // .setIsStrongBoxBacked(true)          // request StrongBox (SE) vs TEE
+    // .setAttestationIds(...)              // ID attestation (privileged)
+    .build());
+kpg.generateKeyPair();
+
+Certificate[] chain = KeyStore.getInstance("AndroidKeyStore")
+        .getCertificateChain("attest_key");</pre>
+<p>The returned <code>chain</code> is the deliverable. Its structure:</p>
+<div class="tbl-wrap"><table>
+<tr><th>Position</th><th>Certificate</th><th>Signed by</th><th>Carries</th></tr>
+<tr><td>Leaf (chain[0])</td><td>Attestation cert for <code>attest_key</code></td><td>Device batch/attestation key (in TEE/StrongBox)</td><td>The public key of <code>attest_key</code> + the <strong>attestation extension</strong> with the challenge and device state</td></tr>
+<tr><td>Intermediate(s)</td><td>Batch attestation cert / RKP-provisioned intermediates</td><td>Higher intermediate, ultimately Google</td><td>Model/batch identity; on RKP devices, a device-unique provisioned key</td></tr>
+<tr><td>Root</td><td>Google Hardware Attestation Root CA</td><td>Self-signed (public key published by Google)</td><td>The trust anchor the verifier pins</td></tr>
+</table></div>
+
+<h3>1.2 The attestation extension — OID <code>1.3.6.1.4.1.11129.2.1.17</code></h3>
+<p>The heart of attestation is a non-critical X.509v3 extension embedded in the <strong>leaf</strong> certificate. Its ASN.1 <code>KeyDescription</code> carries the security level, two authorization lists (software-enforced and hardware/TEE-enforced), and — nested in the hardware list — the <code>RootOfTrust</code>. This is precisely the structure a forger must reproduce.</p>
+<div class="tbl-wrap"><table>
+<tr><th>Field</th><th>Meaning</th><th>Forgery-relevant?</th></tr>
+<tr><td><code>attestationVersion</code></td><td>Schema version. Roughly: 1=KM2, 2=KM3, 3=KM4, 4=KM4.1, 100=KeyMint 1, 200=KeyMint 2, 300=KeyMint 3. <em>(exact map is version-dependent)</em></td><td>Must match device era</td></tr>
+<tr><td><code>attestationSecurityLevel</code> / <code>keymintSecurityLevel</code></td><td>Enum: <code>Software(0)</code>, <code>TrustedEnvironment(1)</code>, <code>StrongBox(2)</code></td><td>Yes — verifier may require TEE/StrongBox</td></tr>
+<tr><td><code>attestationChallenge</code></td><td>The exact bytes from <code>setAttestationChallenge()</code></td><td>Must echo the verifier's nonce</td></tr>
+<tr><td><code>uniqueId</code></td><td>Optional rotating per-device value (privileged)</td><td>Rarely set</td></tr>
+<tr><td><code>softwareEnforced</code> AuthorizationList</td><td>Properties the OS enforces (e.g. <code>attestationApplicationId</code>, tag&nbsp;709)</td><td><code>attestationApplicationId</code> ties the cert to the calling package(s)</td></tr>
+<tr><td><code>hardwareEnforced</code> (TEE-enforced) AuthorizationList</td><td>purpose, algorithm, keySize, <code>osVersion</code>(705), <code>osPatchLevel</code>(706), <code>bootPatchLevel</code>(719), <code>vendorPatchLevel</code>(718), <code>rootOfTrust</code>(704), <code>origin</code></td><td><strong>Yes — the primary forgery target</strong></td></tr>
+</table></div>
+
+<h3>1.3 <code>RootOfTrust</code> — the fields the forgery overwrites</h3>
+<p>Inside the hardware-enforced list, tag 704 holds a <code>RootOfTrust</code> SEQUENCE. These four values are what a "leaf hack" or keybox forge rewrites to make an unlocked, rooted device look pristine:</p>
+<div class="tbl-wrap"><table>
+<tr><th>ASN.1 field</th><th>Type</th><th>Honest value on a rooted/unlocked device</th><th>Forged value</th></tr>
+<tr><td><code>verifiedBootKey</code></td><td>OCTET STRING</td><td>Custom/AOSP key hash</td><td>Stock OEM key hash (or zeros)</td></tr>
+<tr><td><code>deviceLocked</code></td><td>BOOLEAN</td><td><code>false</code> (bootloader unlocked)</td><td><code>true</code></td></tr>
+<tr><td><code>verifiedBootState</code></td><td>ENUMERATED</td><td><code>Unverified(2)=ORANGE</code> or <code>SelfSigned(1)=YELLOW</code></td><td><code>Verified(0)=GREEN</code></td></tr>
+<tr><td><code>verifiedBootHash</code></td><td>OCTET STRING (attestation v3+)</td><td>Hash of the running (patched) boot image</td><td>Plausible stock hash</td></tr>
+</table></div>
+
+<h3>1.4 What a verifier does with the chain</h3>
+<ol>
+<li><strong>Path validation</strong> — verify each signature up to a <em>pinned</em> Google Hardware Attestation Root public key. A chain that doesn't reach that anchor is worthless.</li>
+<li><strong>Challenge match</strong> — the <code>attestationChallenge</code> must equal the server nonce it just issued (freshness / anti-replay).</li>
+<li><strong>Boot state policy</strong> — require <code>verifiedBootState = Verified</code> and <code>deviceLocked = true</code>.</li>
+<li><strong>Security level policy</strong> — require <code>TrustedEnvironment</code> or <code>StrongBox</code> (reject <code>Software</code>).</li>
+<li><strong>Freshness / patch level</strong> — reject stale <code>osPatchLevel</code>/<code>bootPatchLevel</code>.</li>
+<li><strong>Revocation</strong> — check the leaf/intermediate serials against Google's attestation <strong>status list / CRL</strong> (<code>android.googleapis.com/attestation/status</code>). This is the step that catches leaked keyboxes.</li>
+</ol>
+
+<div class="fig">
+<div class="cap"><b>Diagram A</b> — end-to-end attestation request and the interception decision</div>
+<pre class="mermaid">
+flowchart LR
+  APP["App\nKeyPairGenerator +\nsetAttestationChallenge"] --> KS2["keystore2\n(system service)"]
+  KS2 --> KM["KeyMint HAL\n(TEE / StrongBox)"]
+  KM -. "real leaf signed\nby device key" .-> DEC
+  KS2 --> DEC{"TrickyStore hook:\npackage in target.txt?"}
+  DEC -- "no" --> REAL["Real TEE chain\n(honest boot state)"]
+  DEC -- "yes" --> FORGE["Forged chain\nGREEN + locked,\nsigned by keybox key"]
+  REAL --> APP2["App receives chain"]
+  FORGE --> APP2
+  APP2 --> NET["Verifier server"]
+  NET --> V{"Path + challenge +\nboot + revocation"}
+  V -- pass --> OK["Trusted verdict"]
+  V -- fail --> NO["Rejected"]
+</pre>
+</div>
+</section>
+
+<!-- ============ SECTION 2 ============ -->
+<section id="s2">
+<h2><span class="num">2</span>The keybox: the enabling asset</h2>
+
+<p>A <strong>keybox</strong> is the OEM-facing artifact used at the factory to provision a device's attestation identity. In TrickyStore it lives at <code>/data/adb/tricky_store/keybox.xml</code>. Structurally it is an XML file that, per algorithm, pairs a <strong>private key</strong> with the <strong>Google-signed certificate chain</strong> for that key:</p>
+<pre>&lt;AndroidAttestation&gt;
+  &lt;Keybox DeviceID="..."&gt;
+    &lt;Key algorithm="ecdsa"&gt;
+      &lt;PrivateKey format="pem"&gt; ...EC private key... &lt;/PrivateKey&gt;
+      &lt;CertificateChain&gt;
+        &lt;Certificate&gt; batch/leaf cert &lt;/Certificate&gt;
+        &lt;Certificate&gt; intermediate  &lt;/Certificate&gt;
+        &lt;Certificate&gt; Google root   &lt;/Certificate&gt;
+      &lt;/CertificateChain&gt;
+    &lt;/Key&gt;
+    &lt;Key algorithm="rsa"&gt; ... &lt;/Key&gt;
+  &lt;/Keybox&gt;
+&lt;/AndroidAttestation&gt;</pre>
+<p class="note" style="margin-top:8px;border:0;padding:0">(Schematic only — no real key material is reproduced here.)</p>
+
+<p>Why it is <em>the</em> enabling asset: the private key in the keybox is the <strong>signing capability</strong> that TrickyStore lacks on an unlocked device. Possessing it lets TrickyStore sign a freshly-minted leaf certificate so the chain terminates at Google's root — reproducing the one thing the TEE would otherwise do and refuse to do with GREEN boot state on an unlocked device.</p>
+
+<div class="tbl-wrap"><table>
+<tr><th></th><th>"Hardware" / valid keybox</th><th>AOSP / software keybox</th></tr>
+<tr><td>Chain terminates at</td><td>Google Hardware Attestation Root</td><td>AOSP test root (public, in AOSP tree)</td></tr>
+<tr><td>Security level it can claim</td><td><code>TrustedEnvironment</code></td><td>Effectively <code>Software</code></td></tr>
+<tr><td>Fools a strict verifier?</td><td>Until revoked</td><td>No — anchor isn't trusted</td></tr>
+<tr><td>Scarcity</td><td>Leaked/rare; the whole game</td><td>Freely available</td></tr>
+</table></div>
+
+<div class="callout warn"><span class="lbl">Revocation</span>Google maintains an attestation <strong>status list</strong> (serving as a CRL) keyed by certificate serial number. Once a leaked keybox's serials are published there, any verifier that checks the list (Play Integrity does) will reject chains built from it. This is why leaked keyboxes have a shelf life and why "which keybox" matters more than "which module".</div>
+</section>
+
+<!-- ============ SECTION 3 ============ -->
+<section id="s3">
+<h2><span class="num">3</span>TrickyStore architecture &amp; interception point</h2>
+
+<h3>3.1 Where it hooks, and why that location is app-agnostic</h3>
+<p>Attestation on Android 12+ flows <strong>App → <code>keystore2</code> (the AIDL system service <code>android.system.keystore2</code>) → KeyMint HAL (in the TEE)</strong>. TrickyStore is delivered as a root module (KernelSU or Magisk, using Zygisk-style native injection). It inserts itself at the <code>keystore2</code> boundary and intercepts the operation that returns the certificate chain (key generation / <code>attestKey</code>), swapping the chain before it is handed back across Binder to the requesting app.</p>
+<p>Because every app — a bank, a game, or Google Play Services — obtains attestation through the <em>same</em> <code>keystore2</code> service, hooking there is <strong>app-agnostic</strong>: TrickyStore never touches the target app's process. It only needs to know <em>which caller</em> is asking (the UID/package on the Binder transaction) to decide whether to forge. This is the architectural reason a single module can cover arbitrary apps.</p>
+
+<div class="callout"><span class="lbl">Precision note</span>The exact injection primitive (which process is entered, and how the transaction is captured) is implementation- and version-specific and has changed across releases. The stable, load-bearing claim is the <em>logical</em> hook site: the certificate chain returned by <code>keystore2</code>/KeyMint for an attested key. Treat lower-level specifics as version-dependent.</div>
+
+<h3>3.2 Two modes: "leaf hack" vs full keybox generation</h3>
+<div class="tbl-wrap"><table>
+<tr><th></th><th>Leaf hack (no keybox)</th><th>Full generation (keybox)</th></tr>
+<tr><td>Input</td><td>Real leaf from TEE</td><td>Keybox private key + Google chain</td></tr>
+<tr><td>What it changes</td><td>Rewrites <code>RootOfTrust</code> boot fields in the extension, re-signs the leaf</td><td>Mints a brand-new leaf with GREEN/locked state, signs it with the keybox key, appends the keybox's Google-rooted chain</td></tr>
+<tr><td>Chain anchor</td><td><strong>Broken</strong> — re-signing invalidates the path to the real device key / Google root</td><td>Valid up to Google root (until revoked)</td></tr>
+<tr><td>Who it fools</td><td>Verifiers that read boot fields but <em>don't</em> validate the full chain to Google's root</td><td>Verifiers that <em>do</em> validate the full chain (e.g. Play Integrity)</td></tr>
+<tr><td>Detectability</td><td>High — fails proper path validation</td><td>Low, until keybox revoked / ID mismatch</td></tr>
+</table></div>
+
+<h3>3.3 On-device state it maintains</h3>
+<div class="tbl-wrap"><table>
+<tr><th>File / store (under <code>/data/adb/tricky_store/</code>)</th><th>Role</th></tr>
+<tr><td><code>keybox.xml</code></td><td>Signing key + Google chain (Section 2)</td></tr>
+<tr><td><code>target.txt</code></td><td>Allow-list of packages to forge for (Section 4)</td></tr>
+<tr><td><code>security_patch.txt</code></td><td>Overrides <code>osPatchLevel</code>/<code>bootPatchLevel</code>/vendor patch date written into the forged extension so it looks fresh and self-consistent</td></tr>
+<tr><td><code>tee_status</code> / TEE probe</td><td>Records whether the device's real TEE attestation works, informing which mode to use</td></tr>
+<tr><td><code>key_db</code> (keystore state)</td><td>Working state for generated/cached keys and their forged chains</td></tr>
+</table></div>
+
+<div class="fig">
+<div class="cap"><b>Diagram B</b> — the targeting &amp; mode decision, and the resulting certificate path</div>
+<pre class="mermaid">
+flowchart TD
+  START["Attested key request\nfrom package P"] --> INTAR{"P in target.txt?"}
+  INTAR -- "no" --> PASS["Pass through:\nreal TEE chain\n(honest boot state)"]
+  INTAR -- "yes" --> KBOX{"keybox.xml present\nand not revoked?"}
+  KBOX -- "no" --> LEAF["Leaf-hack mode:\nrewrite RootOfTrust,\nre-sign leaf"]
+  KBOX -- "yes" --> GEN["Full generation:\nmint leaf, sign with\nkeybox key"]
+  LEAF --> LPATH["Chain: forged leaf\n(broken anchor)\n-> fools weak checks"]
+  GEN --> GPATH["Chain: forged leaf ->\nkeybox chain -> Google root\n-> fools full validation"]
+</pre>
+</div>
+</section>
+
+<!-- ============ SECTION 4 ============ -->
+<section id="s4">
+<h2><span class="num">4</span>Targeting: the <code>target.txt</code> mechanism</h2>
+
+<p><code>target.txt</code> is a newline-separated allow-list of <strong>calling package names</strong>. TrickyStore watches the file (inotify-style) and re-reads it on modification, so edits take effect without a reboot. Matching is on the identity of the process requesting attestation, resolved from the Binder caller's UID.</p>
+
+<div class="tbl-wrap"><table>
+<tr><th>Entry</th><th>Effect</th></tr>
+<tr><td><code>com.example.bank</code></td><td>Forge attestation for this package (default mode)</td></tr>
+<tr><td><code>com.example.bank!</code></td><td>Trailing <code>!</code> forces full keybox <em>generation</em> for this package (vs. the module's default/leaf behavior). <em>(flag syntax is version-dependent)</em></td></tr>
+<tr><td><code>com.google.android.gms</code></td><td>Forge for Google Play Services — the linchpin for Play Integrity (Section 5)</td></tr>
+<tr><td>(package absent)</td><td><strong>Falls through to the real TEE</strong> — honest boot state is returned</td></tr>
+</table></div>
+
+<h3>4.1 Why GMS must be listed for Play Integrity STRONG</h3>
+<p>Play Integrity's device verdict is produced by <strong>Google Play Services</strong> (the <code>com.google.android.gms</code> package; DroidGuard runs in <code>com.google.android.gms.unstable</code>), which itself performs a hardware-backed key attestation against Google's servers. Because TrickyStore matches on the <em>calling</em> package, GMS only receives a forged chain if <code>com.google.android.gms</code> is in <code>target.txt</code>. List it, and GMS's own attestation now reports GREEN/locked from a Google-rooted chain → <code>MEETS_STRONG_INTEGRITY</code>.</p>
+
+<h3>4.2 Why a self-attesting app must be listed explicitly</h3>
+<p>A banking or DRM app that calls the KeyStore API <em>itself</em> is a different caller than GMS. Forging GMS's attestation does nothing for that app's own <code>getCertificateChain()</code> result. The app's package must be added to <code>target.txt</code> in its own right, or it will get the real TEE chain (revealing the unlocked/rooted state).</p>
+</section>
+
+<!-- ============ SECTION 5 ============ -->
+<section id="s5">
+<h2><span class="num">5</span>Relationship to Play Integrity (and PIF)</h2>
+
+<p>Play Integrity returns a <code>deviceIntegrity</code> field carrying zero or more labels. The three that matter here, in ascending strength:</p>
+<div class="tbl-wrap"><table>
+<tr><th>Label</th><th>Roughly means</th><th>Primary evidence</th></tr>
+<tr><td><code>MEETS_BASIC_INTEGRITY</code></td><td>A generic Android device, not obviously tampered</td><td>Software signals + plausible build fingerprint</td></tr>
+<tr><td><code>MEETS_DEVICE_INTEGRITY</code></td><td>A genuine, Play-certified device</td><td>Increasingly hardware-backed key attestation (esp. 2024+)</td></tr>
+<tr><td><code>MEETS_STRONG_INTEGRITY</code></td><td>Genuine device + recent security patch + verified boot, hardware-rooted</td><td><strong>Hardware key attestation</strong> with GREEN/locked</td></tr>
+</table></div>
+
+<h3>5.1 Division of labour: PIF vs TrickyStore</h3>
+<p>These solve <em>different</em> checks and are usually stacked:</p>
+<div class="tbl-wrap"><table>
+<tr><th>Component</th><th>Spoofs</th><th>Targets which check</th></tr>
+<tr><td><strong>Play Integrity Fix / Fork (PIF)</strong></td><td>Build fingerprint &amp; system properties (<code>ro.build.*</code>, security patch, model) to a known Play-certified profile</td><td>Fingerprint/profile-based checks; historically enough for BASIC and sometimes DEVICE</td></tr>
+<tr><td><strong>TrickyStore</strong></td><td>The hardware <em>key attestation certificate chain</em> (boot state, lock state, Google-rooted signature)</td><td>Hardware-attestation checks → DEVICE and STRONG</td></tr>
+</table></div>
+<p>In short: <strong>PIF lies about what the device claims to be; TrickyStore lies about what the secure hardware certifies.</strong> Since Google moved <code>DEVICE</code>/<code>STRONG</code> onto hardware attestation, PIF alone no longer reaches STRONG — TrickyStore (with a valid keybox) is what carries it there. The boundary between what PIF vs TrickyStore is <em>sufficient</em> for has shifted over time and is version/date-dependent.</p>
+
+<div class="fig">
+<div class="cap"><b>Diagram D</b> — two lanes converging on the keybox: Play Integrity STRONG vs a self-attesting app</div>
+<pre class="mermaid">
+flowchart TD
+  subgraph LANE1["Lane 1 - Play Integrity STRONG"]
+    A1["App calls\nPlay Integrity API"] --> G1["GMS / DroidGuard\ngathers signals"]
+    G1 --> PIF["PIF: spoof fingerprint\n+ props"]
+    G1 --> KA1["GMS hardware\nkey attestation"]
+  end
+  subgraph LANE2["Lane 2 - self-attesting app"]
+    A2["Bank app calls\nKeyStore directly"] --> KA2["App hardware\nkey attestation"]
+  end
+  KA1 --> TS{"TrickyStore hook\n(target.txt match)"}
+  KA2 --> TS
+  TS --> KB["Forge leaf ->\nsign with keybox key ->\nGoogle root"]
+  KB --> V["Verifier / Google:\nGREEN + locked + valid chain"]
+  V --> OUT["STRONG verdict\n/ app trusts device"]
+</pre>
+</div>
+</section>
+
+<!-- ============ SECTION 6 ============ -->
+<section id="s6">
+<h2><span class="num">6</span>Detection &amp; failure modes</h2>
+
+<p>A forged chain can be <em>well-formed</em> and still be caught. The defenses layer:</p>
+<div class="tbl-wrap"><table>
+<tr><th>Detection</th><th>Mechanism</th><th>Why the forge fails</th></tr>
+<tr><td><strong>Keybox revocation</strong></td><td>Verifier checks leaf/intermediate serials against Google's attestation status list/CRL</td><td>Leaked keybox serials get listed → chain rejected regardless of GREEN state</td></tr>
+<tr><td><strong>ID-attestation mismatch</strong></td><td>Verifier requests device ID attestation (IMEI/serial/brand-model tags)</td><td>Keybox's batch identity / forged IDs don't match the real device; hard to keep self-consistent</td></tr>
+<tr><td><strong>StrongBox expectation</strong></td><td>Verifier requires <code>securityLevel = StrongBox(2)</code></td><td>Most leaked keyboxes / forges claim only <code>TrustedEnvironment</code>; a StrongBox-only policy rejects them</td></tr>
+<tr><td><strong>Patch-level freshness</strong></td><td>Reject stale <code>osPatchLevel</code>/<code>bootPatchLevel</code></td><td><code>security_patch.txt</code> must be kept current <em>and</em> internally consistent with the claimed fingerprint (PIF) — drift is a tell</td></tr>
+<tr><td><strong>RKP / provisioning method</strong></td><td>Newer devices use Remote Key Provisioning; short-lived, Google-backend-issued certs look different from a static factory keybox chain</td><td>A static keybox chain on a device that should be RKP-provisioned is anomalous</td></tr>
+<tr><td><strong>Consistency / behavioral</strong></td><td>Server correlates fingerprint, patch dates, boot hash, security level, and account/device history</td><td>A strict third-party (banking) verifier can reject a chain that validates but doesn't cohere</td></tr>
+</table></div>
+
+<div class="callout"><span class="lbl">Key point</span>Path validation success is necessary, not sufficient. Google's own Play Integrity leans on <strong>revocation</strong> and server-side correlation, which is why fresh, unrevoked "hardware" keyboxes are the scarce resource and why a bank writing a strict verifier — pinning StrongBox, requiring ID attestation, and checking the status list — can still reject a forged-but-valid-looking chain.</div>
+
+<div class="fig">
+<div class="cap"><b>Diagram C</b> — challenge/response and where validation catches (or misses) the forge</div>
+<pre class="mermaid">
+sequenceDiagram
+  participant App
+  participant KS as keystore2 / KeyMint
+  participant TS as TrickyStore hook
+  participant Srv as Verifier server
+  Srv->>App: 1. issue nonce (challenge)
+  App->>KS: 2. generateKey(challenge)
+  KS->>TS: 3. return real leaf/chain
+  alt package in target.txt
+    TS->>TS: 4. mint leaf, set GREEN/locked, sign with keybox key
+    TS-->>App: 5a. forged Google-rooted chain
+  else not targeted
+    TS-->>App: 5b. real TEE chain (honest state)
+  end
+  App->>Srv: 6. send chain
+  Srv->>Srv: 7. path-validate to Google root
+  Srv->>Srv: 8. challenge match + boot/lock policy
+  Srv->>Srv: 9. revocation / ID / StrongBox checks
+  Srv-->>App: 10. verdict (trust or reject)
+</pre>
+</div>
+
+<div class="fig">
+<div class="cap"><b>Diagram F</b> — anatomy of the chain and the RootOfTrust fields overwritten</div>
+<pre class="mermaid">
+flowchart TD
+  L["LEAF (chain[0])\npubkey of attest_key\n+ ext OID 1.3.6.1.4.1.11129.2.1.17"] --> ROT["RootOfTrust (tag 704)"]
+  ROT --> F1["verifiedBootState:\nUnverified -> Verified (GREEN)"]
+  ROT --> F2["deviceLocked:\nfalse -> true"]
+  ROT --> F3["verifiedBootKey:\ncustom -> stock/zeros"]
+  ROT --> F4["verifiedBootHash:\npatched -> stock"]
+  L --> I["INTERMEDIATE(s)\nbatch / provisioned"]
+  I --> R["GOOGLE HW ATTESTATION ROOT\n(pinned by verifier)"]
+  KBK["keybox private key\nre-signs leaf"] -. signs .-> L
+</pre>
+</div>
+</section>
+
+<!-- ============ SECTION 7 ============ -->
+<section id="s7">
+<h2><span class="num">7</span>Android architecture (context)</h2>
+<p>The attestation trust model only makes sense against the layered platform it sits in. From the top down:</p>
+<div class="tbl-wrap"><table>
+<tr><th>Layer</th><th>Contents</th><th>Relevance to attestation</th></tr>
+<tr><td>Apps</td><td>APKs in per-UID sandboxes</td><td>The caller identity TrickyStore matches on</td></tr>
+<tr><td>Java/System framework</td><td>System services in <code>system_server</code>; the AndroidKeyStore provider</td><td>API entry point (<code>KeyPairGenerator</code>, <code>KeyStore</code>)</td></tr>
+<tr><td>Native services / HAL</td><td><code>keystore2</code> daemon; KeyMint AIDL HAL</td><td><strong>The hook site</strong></td></tr>
+<tr><td>Kernel</td><td>Linux kernel + SELinux (enforcing), Binder IPC, dm-verity</td><td>KernelSU operates here; dm-verity guards system integrity</td></tr>
+<tr><td>Secure world</td><td>TrustZone TEE (KeyMint TA) and/or StrongBox secure element</td><td>Holds the real device attestation key; what the forge substitutes for</td></tr>
+<tr><td>Boot chain</td><td>Bootloader → Android Verified Boot (AVB) → verified boot state (GREEN/YELLOW/ORANGE/RED)</td><td>The exact state the extension reports and the forge rewrites</td></tr>
+</table></div>
+<p><strong>Android Verified Boot (AVB)</strong> cryptographically verifies each stage from the bootloader up. An unlocked bootloader or a modified boot image drives the state to YELLOW/ORANGE, and the TEE faithfully attests that — which is exactly the truth TrickyStore must overwrite. <strong>Remote Key Provisioning (RKP)</strong> is the newer model where attestation certs are provisioned per-device from Google's backend rather than baked in as a static factory keybox, shrinking the value of leaked keyboxes over time.</p>
+
+<div class="fig">
+<div class="cap"><b>Diagram E</b> — component view: KernelSU/Zygisk + TrickyStore + PIF over Keystore2/KeyMint, with hook site and data stores</div>
+<pre class="mermaid">
+flowchart TB
+  subgraph USER["User space"]
+    APP["Apps / bank / GMS"] --> FW["AndroidKeyStore\nframework provider"]
+    FW --> KS2["keystore2 daemon"]
+    PIF["PIF module\n(spoof fingerprint/props)"] -.-> APP
+  end
+  subgraph HOOK["Root module layer"]
+    KSU["KernelSU / Magisk + Zygisk"] --> TS["TrickyStore hook"]
+    TS -.reads.-> KBX[("keybox.xml")]
+    TS -.reads.-> TGT[("target.txt")]
+    TS -.reads/writes.-> KDB[("key_db /\nsecurity_patch.txt")]
+  end
+  KS2 --- TS
+  subgraph SECURE["Secure world"]
+    KM["KeyMint TA (TEE)"]
+    SB["StrongBox SE"]
+  end
+  KS2 --> KM
+  KS2 --> SB
+  TS == "substitutes chain\nbefore return" ==> KS2
+</pre>
+</div>
+</section>
+
+<!-- ============ SECTION 8 ============ -->
+<section id="s8">
+<h2><span class="num">8</span>Attacks on the Android architecture</h2>
+<p>TrickyStore is one entry in a broader family of platform-integrity attacks. Mapping them clarifies where attestation forging sits and what it depends on.</p>
+<div class="tbl-wrap"><table>
+<tr><th>Attack class</th><th>What it subverts</th><th>Relation to attestation forging</th></tr>
+<tr><td>Bootloader unlock</td><td>AVB chain of trust</td><td><strong>Precondition</strong> for rooting; also what turns boot state non-GREEN — the thing TrickyStore hides</td></tr>
+<tr><td>Systemless root (Magisk/KernelSU)</td><td>Runs privileged code without modifying <code>/system</code> on disk (dodging dm-verity)</td><td>Provides the privilege TrickyStore needs to inject at the keystore boundary</td></tr>
+<tr><td>Zygisk / native injection</td><td>Code injection into system/app processes at zygote fork</td><td>Delivery mechanism for TrickyStore and PIF</td></tr>
+<tr><td>Property/fingerprint spoofing (PIF)</td><td>Software identity signals</td><td>Complementary lie — covers the fingerprint checks attestation forging doesn't</td></tr>
+<tr><td>SELinux policy weakening</td><td>Mandatory access control</td><td>May be needed for the module to reach protected interfaces</td></tr>
+<tr><td>TEE / TrustZone exploitation</td><td>The secure world itself</td><td>A <em>stronger</em> attack: extract the real device key rather than borrow a leaked keybox — rare, high-value</td></tr>
+<tr><td>Downgrade / rollback</td><td>Version anti-rollback (patch level)</td><td>Old firmware with known TEE bugs can expose keys or weaken checks; conflicts with freshness requirements</td></tr>
+<tr><td>Keybox theft / leakage</td><td>OEM provisioning secrets</td><td><strong>The supply of the enabling asset</strong> — the root cause that makes full-generation mode possible</td></tr>
+</table></div>
+<p>Read as a chain: <em>unlock bootloader → systemless root → inject via Zygisk → forge attestation (TrickyStore + leaked keybox) + spoof identity (PIF)</em>. The defense that most reliably breaks the chain is not any single on-device check but Google's <strong>revocation of leaked keyboxes plus server-side correlation</strong> — the parts an on-device module cannot forge.</p>
+</section>
+
+<!-- ============ GLOSSARY ============ -->
+<section id="gloss">
+<h2>Glossary</h2>
+<dl class="gloss">
+<dt>AVB (Android Verified Boot)</dt><dd>Cryptographic verification of each boot stage; sets the verified boot state (GREEN/YELLOW/ORANGE/RED).</dd>
+<dt>Attestation extension</dt><dd>X.509 extension (OID <code>1.3.6.1.4.1.11129.2.1.17</code>) in the leaf cert carrying the challenge, security level, and RootOfTrust.</dd>
+<dt>keystore2 / KeyMint</dt><dd>Android 12+ AIDL keystore service and its hardware HAL (TEE-resident), replacing legacy keystore/Keymaster.</dd>
+<dt>Keybox</dt><dd>OEM provisioning artifact: attestation private key(s) + Google-signed cert chain. Leaked "hardware" keyboxes enable full forging.</dd>
+<dt>RootOfTrust</dt><dd>ASN.1 SEQUENCE (tag 704): <code>verifiedBootKey</code>, <code>deviceLocked</code>, <code>verifiedBootState</code>, <code>verifiedBootHash</code> — the fields the forge overwrites.</dd>
+<dt>StrongBox</dt><dd>A discrete secure element providing a higher security level than the TrustZone TEE.</dd>
+<dt>RKP (Remote Key Provisioning)</dt><dd>Newer model where attestation certs are provisioned per-device from Google's backend rather than a static factory keybox.</dd>
+<dt>Play Integrity verdicts</dt><dd><code>MEETS_BASIC_INTEGRITY</code> / <code>MEETS_DEVICE_INTEGRITY</code> / <code>MEETS_STRONG_INTEGRITY</code> — STRONG requires hardware attestation with verified boot.</dd>
+<dt>PIF (Play Integrity Fix/Fork)</dt><dd>Module that spoofs build fingerprint and system properties; complements TrickyStore's attestation forging.</dd>
+<dt>TrickyStore</dt><dd>Root module that intercepts the keystore2/KeyMint certificate chain and substitutes a forged one for targeted packages.</dd>
+</dl>
+</section>
+
+<div class="note">
+Educational reference on attestation internals and their detection. Contains no leaked keybox material, private keys, or step-by-step evasion recipe for any specific target app. Version-specific behavior (attestation versions, verdict thresholds, module flag syntax, RKP adoption) is noted as such and evolves; treat exact internals as time-dependent.
+</div>
+
+</div>
+
+<script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+mermaid.initialize({
+  startOnLoad:true,
+  theme:"base",
+  securityLevel:"strict",
+  themeVariables:{
+    fontFamily:'"IBM Plex Mono", monospace',
+    fontSize:"13px",
+    background:"#0F1E24",
+    primaryColor:"#132831",
+    primaryTextColor:"#EDF5F5",
+    primaryBorderColor:"#1E3B47",
+    lineColor:"#4FC3D9",
+    secondaryColor:"#0F1E24",
+    tertiaryColor:"#0A1418",
+    clusterBkg:"#0A1418",
+    clusterBorder:"#1E3B47",
+    edgeLabelBackground:"#0A1418",
+    actorBkg:"#132831",
+    actorBorder:"#F2A03D",
+    actorTextColor:"#EDF5F5",
+    signalColor:"#9DB6BF",
+    signalTextColor:"#CFE6EC",
+    labelBoxBkgColor:"#132831",
+    labelBoxBorderColor:"#1E3B47",
+    noteBkgColor:"#132831",
+    noteTextColor:"#EDF5F5"
+  }
+});
+</script>
+</body>
+</html>
