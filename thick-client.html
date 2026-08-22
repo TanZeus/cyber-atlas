@@ -170,7 +170,7 @@ td code,th code{background:transparent;border:0;padding:0;color:var(--cool)}
   <a class="back" href="./index.html">&larr; Cyber Atlas</a>
   <div class="brand">Deep dive · Thick client security</div>
   <h1>Thick Client · <span>Desktop App</span> Penetration Testing</h1>
-  <p class="sub">A single, plain-English map of how to test installed desktop applications. It covers what a thick client is, the two ways they are built, the full eight-phase test flow, and the four attacks that define this field: reading secrets from memory, patching the binary, hijacking a DLL, and intercepting non-web traffic. Written in simple technical English with diagrams and small interactive demos, for authorized testing and defense only.</p>
+  <p class="sub">How to test installed desktop applications: what a thick client is, how they are built, the eight-phase test flow, and the attacks that define this field. For authorized testing and defense only.</p>
   <div class="tags">
     <span class="chip">OWASP-based checklist</span>
     <span class="chip">.NET · Java · C/C++ · Electron</span>
@@ -525,7 +525,54 @@ Turn on Burp intercept, trigger "Backup data to FTP server", and the FTP <code>U
 <li><strong>Inject your CA</strong> into the app's trust store, if it uses the OS store or a bundled store you can replace.</li>
 <li><strong>Patch the validation method</strong> to always return "valid" (a dnSpy IL patch for .NET, a byte patch for native code). See Section 13.</li>
 </ul>
-<p><strong>Tools:</strong> Wireshark, TCPView, Burp Suite, Echo Mirage, mitm_relay, InterceptSuite, Frida.</p>
+
+<h3>8.5 Frida on desktop (.exe), not just mobile</h3>
+<p>A common misconception is that Frida is only for Android and iOS. It is not. Frida is a cross-platform instrumentation toolkit that also runs on <strong>Windows, macOS, and Linux</strong>, including plain <code>.exe</code> thick clients. It injects a small JavaScript engine into a running process, so you can hook and rewrite functions at runtime without touching the binary on disk.</p>
+
+<div class="callout"><span class="lbl">Why it looks mobile-only</span>On a phone the OS is locked down, so you push a <strong>frida-server</strong> to a rooted device, or repackage the app with a <strong>frida-gadget</strong>. That extra step is what people remember. On a desktop <strong>you already own the machine</strong>, so you skip all of that and attach to the process directly. Same tool, fewer moving parts.</div>
+
+<h4>Setup and attach</h4>
+<pre>pip install frida-tools
+
+frida-ps                     <span class="cm"># list running processes</span>
+frida -n app.exe             <span class="cm"># attach to a running process by name</span>
+frida -p 4812                <span class="cm"># attach by PID</span>
+frida -f C:\app\app.exe -l hook.js   <span class="cm"># SPAWN it, hooks load before main() runs</span></pre>
+<p>Use <strong>spawn</strong> (<code>-f</code>) when the interesting thing happens at startup, like a license or certificate check. Use <strong>attach</strong> (<code>-n</code>) for something you trigger later in the UI.</p>
+
+<h4>What you hook</h4>
+<p>Instead of Java or Objective-C methods, you hook <strong>native functions by module and export name</strong>. The pattern is always the same: find the function, wrap it with <code>Interceptor.attach</code>, then read or change its arguments and return value.</p>
+<div class="tbl-wrap"><table>
+<tr><th>Goal</th><th>Function to hook</th></tr>
+<tr><td>Read or modify network traffic (a live Echo Mirage)</td><td><code>ws2_32.dll!send</code>, <code>ws2_32.dll!recv</code></td></tr>
+<tr><td>See plaintext and crypto keys</td><td><code>bcrypt.dll!BCryptEncrypt</code>, <code>crypt32.dll</code> functions</td></tr>
+<tr><td>Watch file access</td><td><code>kernel32.dll!CreateFileW</code></td></tr>
+<tr><td>Bypass a check</td><td>the app's own validation function, force the return value</td></tr>
+<tr><td>SSL pinning bypass</td><td>the cert-validation routine (schannel, or a bundled OpenSSL/BoringSSL)</td></tr>
+</table></div>
+
+<h4>Example: dump socket traffic</h4>
+<pre><span class="cm">// hook.js</span>
+const send = Module.getExportByName('ws2_32.dll', 'send');
+Interceptor.attach(send, {
+  onEnter(args) {
+    const len = args[2].toInt32();
+    console.log('[send] ' + len + ' bytes:');
+    console.log(hexdump(args[1], { length: len }));
+  }
+});</pre>
+<p>Run it with <code>frida -n target.exe -l hook.js</code>. You now see every byte the app sends, even for a raw non-web protocol, and you can rewrite it in <code>onEnter</code> before it leaves the machine.</p>
+
+<h4>Example: force a check to pass</h4>
+<pre><span class="cm">// make an auth or license function always return true (1)</span>
+const addr = Module.getExportByName('app.exe', 'CheckLicense');
+Interceptor.attach(addr, {
+  onLeave(retval) { retval.replace(1); }
+});</pre>
+
+<div class="callout warn"><span class="lbl">The one limitation: managed .NET</span>Frida hooks the <strong>native</strong> layer easily. <strong>Managed .NET</strong> methods (C#, VB.NET) are JIT-compiled at runtime, so hooking a specific managed method by name is harder. In practice: use <strong>dnSpy</strong> for a permanent patch of managed logic (Section 13), and use <strong>Frida</strong> for the native side, sockets, Win32 crypto, and bundled C/C++ libraries. Bridges exist (frida-clr, Fermion), but that clean split is the fast path.</div>
+
+<p><strong>Tools:</strong> Wireshark, TCPView, Burp Suite, Echo Mirage, mitm_relay, InterceptSuite, Frida (frida-tools, frida-trace).</p>
 </section>
 
 <!-- ============ SECTION 9 ============ -->
@@ -847,7 +894,7 @@ flowchart TB
 <dt>IL (Intermediate Language)</dt><dd>The bytecode .NET compiles to. It decompiles to near-source, which makes patching easy.</dd>
 <dt>dnSpy</dt><dd>Tool that decompiles, edits, and debugs .NET assemblies, including live IL edits.</dd>
 <dt>Echo Mirage / mitm_relay / InterceptSuite</dt><dd>Tools that intercept non-web (raw TCP) traffic by hooking sockets or relaying through Burp.</dd>
-<dt>Frida</dt><dd>Runtime instrumentation toolkit. Hooks functions in a running app, the main route for pinning bypass.</dd>
+<dt>Frida</dt><dd>Cross-platform runtime instrumentation toolkit (Windows, macOS, Linux, Android, iOS). Hooks functions in a running app, the main route for pinning bypass. On desktop you attach directly, no server needed.</dd>
 <dt>Regshot</dt><dd>Takes two registry snapshots and diffs them, so you see only what the app changed.</dd>
 <dt>Procmon</dt><dd>Sysinternals Process Monitor. Live view of file, registry, and process activity, used to find DLL hijack candidates.</dd>
 <dt>Certificate pinning</dt><dd>The app trusts only one specific certificate, which blocks a normal proxy until you bypass the check.</dd>
